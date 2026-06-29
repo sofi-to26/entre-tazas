@@ -20,18 +20,18 @@ const Cart = ({ cart, isOpen, onClose, updateQuantity, removeFromCart, clearCart
 
     // Format WhatsApp message
     const lineBreak = '\n';
-    let message = `☕ *ENTRE TAZAS - NUEVO PEDIDO* ☕${lineBreak}`;
+    let message = `*ENTRE TAZAS - NUEVO PEDIDO*${lineBreak}`;
     message += `----------------------------------${lineBreak}`;
-    message += `👤 *Cliente:* ${nombre.trim()}${lineBreak}`;
-    message += `📍 *Dirección:* ${direccion.trim()}${lineBreak}`;
+    message += `*Cliente:* ${nombre.trim()}${lineBreak}`;
+    message += `*Dirección:* ${direccion.trim()}${lineBreak}`;
     message += `----------------------------------${lineBreak}${lineBreak}`;
-    message += `📦 *Detalle del Pedido:*${lineBreak}`;
+    message += `*Detalle del Pedido:*${lineBreak}`;
     
     cart.forEach(item => {
       message += `• ${item.quantity}x ${item.nombre} ($${(item.precio * item.quantity).toFixed(2)})${lineBreak}`;
     });
     
-    message += `${lineBreak}💰 *Total a Pagar:* $${total.toFixed(2)}${lineBreak}`;
+    message += `${lineBreak}*Total a Pagar:* $${total.toFixed(2)}${lineBreak}`;
     message += `----------------------------------${lineBreak}`;
     message += `¡Muchas gracias por tu compra!`;
 
