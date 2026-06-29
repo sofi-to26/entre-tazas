@@ -28,12 +28,12 @@ const Cart = ({ cart, isOpen, onClose, updateQuantity, removeFromCart, clearCart
     message += `*Detalle del Pedido:*${lineBreak}`;
     
     cart.forEach(item => {
-      message += `• ${item.quantity}x ${item.nombre} ($${(item.precio * item.quantity).toFixed(2)})${lineBreak}`;
+      message += `- ${item.quantity}x ${item.nombre} ($${(item.precio * item.quantity).toFixed(2)})${lineBreak}`;
     });
     
     message += `${lineBreak}*Total a Pagar:* $${total.toFixed(2)}${lineBreak}`;
     message += `----------------------------------${lineBreak}`;
-    message += `¡Muchas gracias por tu compra!`;
+    message += `Muchas gracias por tu compra.`;
 
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/584166443465?text=${encodedMessage}`;
