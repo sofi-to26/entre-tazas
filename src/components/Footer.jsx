@@ -24,6 +24,11 @@ const Footer = () => {
           </a>
         </div>
       </div>
+      
+      <div className="container mx-auto px-6 border-t border-white/10 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center text-xs text-gray-400">
+        <p>&copy; {new Date().getFullYear()} Entre Tazas. Todos los derechos reservados.</p>
+        <a href="#/admin" className="hover:text-dorado transition-colors mt-2 md:mt-0">Panel de Administración</a>
+      </div>
     </footer>
   );
 };
