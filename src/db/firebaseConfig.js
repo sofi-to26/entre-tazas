@@ -3,29 +3,16 @@ import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
+  apiKey: "AIzaSyB_gLaOBtysd0Y0jGvVIC8fCyKn8Egk7-c",
+  authDomain: "entre-tazas.firebaseapp.com",
+  projectId: "entre-tazas",
+  storageBucket: "entre-tazas.firebasestorage.app",
+  messagingSenderId: "372132177449",
+  appId: "1:372132177449:web:1384b4de0054444348de38",
+  measurementId: "G-GFHV8LNP4Z"
 };
 
-let app = null;
-let db = null;
-let auth = null;
-
-if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "TU_API_KEY") {
-  try {
-    app = initializeApp(firebaseConfig);
-    db = getFirestore(app);
-    auth = getAuth(app);
-  } catch (error) {
-    console.error("Error al inicializar Firebase:", error);
-  }
-} else {
-  console.warn("Firebase no configurado. Las funciones de administración y base de datos local están en modo offline.");
-}
-
-export { db, auth };
+const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app);
+export const auth = getAuth(app);
 export default app;
