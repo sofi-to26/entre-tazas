@@ -1,29 +1,51 @@
 import React, { useState } from 'react';
 import { ShoppingBag, X, Plus, Minus, Trash2, Send } from 'lucide-react';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../db/firebaseConfig';
 
 const Cart = ({ cart, isOpen, onClose, updateQuantity, removeFromCart, clearCart }) => {
   const [nombre, setNombre] = useState('');
   const [direccion, setDireccion] = useState('');
   const [validated, setValidated] = useState(true);
+  const [sending, setSending] = useState(false);
 
   if (!isOpen) return null;
 
   const total = cart.reduce((sum, item) => sum + item.precio * item.quantity, 0);
 
-  const handleCheckout = (e) => {
+  const handleCheckout = async (e) => {
     e.preventDefault();
     if (!nombre.trim() || !direccion.trim()) {
       setValidated(false);
       return;
     }
     setValidated(true);
+    setSending(true);
+
+    // Save order to Firestore
+    try {
+      await addDoc(collection(db, 'orders'), {
+        clientName: nombre.trim(),
+        address: direccion.trim(),
+        products: cart.map(item => ({
+          nombre: item.nombre,
+          precio: item.precio,
+          quantity: item.quantity
+        })),
+        total,
+        status: 'pendiente',
+        timestamp: serverTimestamp()
+      });
+    } catch (err) {
+      console.error('Error guardando pedido:', err);
+    }
 
     // Format WhatsApp message
     const lineBreak = '\n';
     let message = `*ENTRE TAZAS - NUEVO PEDIDO*${lineBreak}`;
     message += `----------------------------------${lineBreak}`;
     message += `*Cliente:* ${nombre.trim()}${lineBreak}`;
-    message += `*Dirección:* ${direccion.trim()}${lineBreak}`;
+    message += `*Direccion:* ${direccion.trim()}${lineBreak}`;
     message += `----------------------------------${lineBreak}${lineBreak}`;
     message += `*Detalle del Pedido:*${lineBreak}`;
     
@@ -39,6 +61,13 @@ const Cart = ({ cart, isOpen, onClose, updateQuantity, removeFromCart, clearCart
     const whatsappUrl = `https://wa.me/584166443465?text=${encodedMessage}`;
     
     window.open(whatsappUrl, '_blank');
+
+    // Clear form and cart
+    setNombre('');
+    setDireccion('');
+    clearCart();
+    setSending(false);
+    onClose();
   };
 
   return (

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Menu from './components/Menu';
@@ -8,10 +8,22 @@ import Footer from './components/Footer';
 import FAB from './components/FAB';
 import Cart from './components/Cart';
 import MenuCarousel from './components/MenuCarousel';
+import AdminDashboard from './components/AdminDashboard';
+import Auth from './components/Auth';
 
 function App() {
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminUser, setAdminUser] = useState(null);
+
+  // Check hash for admin route
+  useEffect(() => {
+    const checkHash = () => setIsAdmin(window.location.hash === '#/admin');
+    checkHash();
+    window.addEventListener('hashchange', checkHash);
+    return () => window.removeEventListener('hashchange', checkHash);
+  }, []);
 
   const addToCart = (item, optionName = null, priceOverride = null) => {
     setCart(prevCart => {
@@ -62,6 +74,23 @@ function App() {
 
   const clearCart = () => setCart([]);
 
+  // Admin route
+  if (isAdmin) {
+    if (!adminUser) {
+      return <Auth onAuth={(user) => setAdminUser(user)} />;
+    }
+    return (
+      <AdminDashboard
+        user={adminUser}
+        onLogout={() => {
+          setAdminUser(null);
+          window.location.hash = '';
+        }}
+      />
+    );
+  }
+
+  // Public site
   return (
     <div className="font-sans text-gray-800 antialiased">
       <Navbar cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)} onOpenCart={() => setIsCartOpen(true)} />
