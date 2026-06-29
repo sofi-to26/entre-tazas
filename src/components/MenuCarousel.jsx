@@ -39,13 +39,15 @@ const MenuCarousel = ({ onAddToCart }) => {
 
   return (
     <section className="py-16 bg-arena/20">
-      <div className="container mx-auto px-6">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold text-[#162444] mb-2">Recomendados de la Casa</h2>
-          <div className="w-20 h-1 bg-[#C5A880] mx-auto rounded-full"></div>
-        </div>
+      <div className="text-center mb-10 px-6">
+        <h2 className="text-3xl font-bold text-[#162444] mb-2">Recomendados de la Casa</h2>
+        <div className="w-20 h-1 bg-[#C5A880] mx-auto rounded-full"></div>
+      </div>
 
-        <div className="flex justify-center gap-6 overflow-x-auto snap-x mandatory pb-6 hide-scrollbar">
+      {/* Scroll track — full bleed so cards peek on the edges on mobile */}
+      <div className="overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-4">
+        {/* Inner row: px padding creates the "peek" effect and centres on desktop */}
+        <div className="flex gap-5 px-6 w-max mx-auto">
           {items.map((item) => (
             <Card key={item.id} item={item} onAddToCart={onAddToCart} />
           ))}
@@ -74,15 +76,14 @@ const Card = ({ item, onAddToCart }) => {
         item.precioNum
       );
     }
-
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
 
   return (
-    <div className="w-64 bg-white rounded-2xl shadow-lg flex-shrink-0 snap-center overflow-hidden border border-gray-100 flex flex-col justify-between">
+    <div className="w-[80vw] max-w-xs sm:w-72 bg-white rounded-2xl shadow-lg flex-shrink-0 snap-center overflow-hidden border border-gray-100 flex flex-col justify-between">
       <div>
-        <div className="h-44 w-full overflow-hidden">
+        <div className="h-48 w-full overflow-hidden">
           <img
             src={item.img}
             alt={item.titulo}
@@ -91,14 +92,14 @@ const Card = ({ item, onAddToCart }) => {
         </div>
 
         <div className="p-4">
-          <div className="flex justify-between items-start mb-1">
-            <h3 className="text-base font-bold text-[#162444] line-clamp-1">{item.titulo}</h3>
+          <div className="flex justify-between items-start gap-2 mb-1">
+            <h3 className="text-base font-bold text-[#162444] leading-tight">{item.titulo}</h3>
             <span className="text-[#C5A880] font-black text-sm whitespace-nowrap">{item.precio}</span>
           </div>
-          <p className="text-xs text-gray-500 mb-4 line-clamp-2 h-8">{item.desc}</p>
+          <p className="text-xs text-gray-500 mb-3">{item.desc}</p>
 
           {item.options && (
-            <div className="mb-4">
+            <div className="mb-3">
               <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
                 Seleccionar Opción
               </label>
@@ -134,7 +135,7 @@ const Card = ({ item, onAddToCart }) => {
           }`}
         >
           <ShoppingCart size={14} />
-          {added ? '¡Agregado!' : 'Agregar a canasta'}
+          {added ? 'Agregado!' : 'Agregar a canasta'}
         </button>
       </div>
     </div>
