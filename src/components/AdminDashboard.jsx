@@ -9,6 +9,7 @@ const AdminDashboard = ({ user, onLogout }) => {
   const [filter, setFilter] = useState('all');
 
   useEffect(() => {
+    if (!db) return;
     const q = query(collection(db, 'orders'), orderBy('timestamp', 'desc'));
     const unsub = onSnapshot(q, (snap) => {
       setOrders(snap.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -17,10 +18,12 @@ const AdminDashboard = ({ user, onLogout }) => {
   }, []);
 
   const confirmOrder = async (id) => {
+    if (!db) return;
     await updateDoc(doc(db, 'orders', id), { status: 'confirmado' });
   };
 
   const deleteOrder = async (id) => {
+    if (!db) return;
     if (window.confirm('Eliminar este pedido?')) {
       await deleteDoc(doc(db, 'orders', id));
     }

@@ -11,7 +11,21 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
-export const auth = getAuth(app);
+let app = null;
+let db = null;
+let auth = null;
+
+if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "TU_API_KEY") {
+  try {
+    app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+    auth = getAuth(app);
+  } catch (error) {
+    console.error("Error al inicializar Firebase:", error);
+  }
+} else {
+  console.warn("Firebase no configurado. Las funciones de administración y base de datos local están en modo offline.");
+}
+
+export { db, auth };
 export default app;

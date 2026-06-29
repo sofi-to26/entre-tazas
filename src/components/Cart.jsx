@@ -22,22 +22,24 @@ const Cart = ({ cart, isOpen, onClose, updateQuantity, removeFromCart, clearCart
     setValidated(true);
     setSending(true);
 
-    // Save order to Firestore
-    try {
-      await addDoc(collection(db, 'orders'), {
-        clientName: nombre.trim(),
-        address: direccion.trim(),
-        products: cart.map(item => ({
-          nombre: item.nombre,
-          precio: item.precio,
-          quantity: item.quantity
-        })),
-        total,
-        status: 'pendiente',
-        timestamp: serverTimestamp()
-      });
-    } catch (err) {
-      console.error('Error guardando pedido:', err);
+    // Save order to Firestore if database is configured
+    if (db) {
+      try {
+        await addDoc(collection(db, 'orders'), {
+          clientName: nombre.trim(),
+          address: direccion.trim(),
+          products: cart.map(item => ({
+            nombre: item.nombre,
+            precio: item.precio,
+            quantity: item.quantity
+          })),
+          total,
+          status: 'pendiente',
+          timestamp: serverTimestamp()
+        });
+      } catch (err) {
+        console.error('Error guardando pedido:', err);
+      }
     }
 
     // Format WhatsApp message
