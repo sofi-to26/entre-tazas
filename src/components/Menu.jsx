@@ -13,20 +13,24 @@ const Menu = () => {
   return (
     <section id="menu" className="relative py-20 bg-arena overflow-hidden">
       {/* Left side decorative coffee cups */}
-      <img 
-        key={`left-${activeTab}`}
-        src="/imagenes_tazas_cafe/izquierda.png" 
-        alt="" 
-        className="absolute left-0 top-0 h-full w-auto object-contain pointer-events-none select-none z-0 hidden md:block animate-left-image" 
-      />
+      <div className="absolute left-0 top-0 bottom-0 flex items-center z-0 hidden xl:flex pointer-events-none select-none">
+        <img 
+          key={`left-${activeTab}`}
+          src="/imagenes_tazas_cafe/izquierda.png" 
+          alt="" 
+          className="w-[18vw] max-w-[280px] h-auto object-contain animate-left-image" 
+        />
+      </div>
 
       {/* Right side decorative coffee cups */}
-      <img 
-        key={`right-${activeTab}`}
-        src="/imagenes_tazas_cafe/derecha.png" 
-        alt="" 
-        className="absolute right-0 top-0 h-full w-auto object-contain pointer-events-none select-none z-0 hidden md:block animate-right-image" 
-      />
+      <div className="absolute right-0 top-0 bottom-0 flex items-center z-0 hidden xl:flex pointer-events-none select-none">
+        <img 
+          key={`right-${activeTab}`}
+          src="/imagenes_tazas_cafe/derecha.png" 
+          alt="" 
+          className="w-[18vw] max-w-[280px] h-auto object-contain animate-right-image" 
+        />
+      </div>
 
       <div className="container mx-auto px-6 max-w-4xl relative z-10">
         <div className="text-center mb-12">
