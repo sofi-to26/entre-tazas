@@ -7,6 +7,7 @@ import Comments from './components/Comments';
 import Footer from './components/Footer';
 import FAB from './components/FAB';
 import Cart from './components/Cart';
+import MenuCarousel from './components/MenuCarousel';
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -66,6 +67,7 @@ function App() {
       <Navbar cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)} onOpenCart={() => setIsCartOpen(true)} />
       <main>
         <Hero />
+        <MenuCarousel onAddToCart={addToCart} />
         <Menu onAddToCart={addToCart} />
         <Gallery />
         <Comments />
