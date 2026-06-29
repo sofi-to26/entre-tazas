@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { menuData } from '../data/menuData';
 
-const Menu = () => {
+const Menu = ({ onAddToCart }) => {
   const [activeTab, setActiveTab] = useState('desayunos');
 
   const tabs = [
@@ -54,19 +54,50 @@ const Menu = () => {
           ))}
         </div>
 
-        <div key={activeTab} className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+        <div key={activeTab} className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {menuData[activeTab].map((item, idx) => (
             <div 
               key={item.id} 
-              className="flex flex-col group cursor-pointer animate-fade-in-up"
+              className="flex flex-col bg-white/60 hover:bg-white p-4 rounded-xl shadow-sm border border-gray-100 transition-all group animate-fade-in-up"
               style={{ animationDelay: `${idx * 40}ms`, animationFillMode: 'both' }}
             >
-              <div className="flex items-end text-lg font-medium text-corporativo">
-                <span className="group-hover:text-dorado transition-colors">{item.nombre}</span>
-                <span className="dot-leader"></span>
-                <span className="font-bold">{item.precio}</span>
+              <div className="flex justify-between items-start h-full">
+                <div className="flex-1 pr-4 flex flex-col justify-between h-full">
+                  <div>
+                    <h3 className="text-lg font-bold text-corporativo group-hover:text-dorado transition-colors">
+                      {item.nombre}
+                    </h3>
+                    {item.desc && <p className="text-sm text-gray-500 mt-1">{item.desc}</p>}
+                  </div>
+                  <p className="text-dorado font-bold text-lg mt-2">{item.precio}</p>
+                </div>
+                
+                <div className="flex flex-col justify-center h-full min-h-[40px]">
+                  {item.precio.includes('/') ? (
+                    <div className="flex flex-col gap-1.5">
+                      <button
+                        onClick={() => onAddToCart(item, 'Grande', 2.30)}
+                        className="px-3 py-1.5 bg-corporativo hover:bg-dorado hover:text-corporativo text-white text-xs font-bold rounded-lg transition-all active:scale-95 shadow-sm whitespace-nowrap"
+                      >
+                        + Grande
+                      </button>
+                      <button
+                        onClick={() => onAddToCart(item, 'Pequeño', 1.30)}
+                        className="px-3 py-1.5 bg-corporativo hover:bg-dorado hover:text-corporativo text-white text-xs font-bold rounded-lg transition-all active:scale-95 shadow-sm whitespace-nowrap"
+                      >
+                        + Pequeño
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => onAddToCart(item)}
+                      className="px-4 py-2 bg-corporativo hover:bg-dorado hover:text-corporativo text-white text-sm font-bold rounded-lg transition-all active:scale-95 shadow-sm"
+                    >
+                      + Agregar
+                    </button>
+                  )}
+                </div>
               </div>
-              {item.desc && <p className="text-sm text-gray-500 mt-1">{item.desc}</p>}
             </div>
           ))}
         </div>
