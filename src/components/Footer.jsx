@@ -8,7 +8,7 @@ const Footer = () => {
         <div className="flex flex-col gap-4">
           <h3 className="text-xl font-bold flex items-center gap-2"><MapPin className="text-dorado"/> Ubicación</h3>
           <p className="text-gray-300">Av. Bolívar de La Parroquia,<br/>Esquina Inferior de la Plaza.<br/>Mérida, Venezuela.</p>
-          <a href="#" className="text-dorado hover:underline w-max">Abrir en Google Maps</a>
+          <a href="https://www.google.com/maps/place/Entre+Tazas+Caf%C3%A9/data=!4m2!3m1!1s0x0:0x9a9ded563899e2c2?sa=X&ved=1t:2428&ictx=111" target="_blank" rel="noopener noreferrer" className="text-dorado hover:underline w-max">Abrir en Google Maps</a>
         </div>
         <div className="flex flex-col gap-4">
           <h3 className="text-xl font-bold flex items-center gap-2"><Clock className="text-dorado"/> Horario de Trabajo</h3>
