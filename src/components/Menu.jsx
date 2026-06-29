@@ -18,7 +18,7 @@ const Menu = ({ onAddToCart }) => {
           key={`left-${activeTab}`}
           src="/imagenes_tazas_cafe/izquierda.png" 
           alt="" 
-          className="w-[18vw] max-w-[280px] h-auto object-contain animate-left-image" 
+          className="w-[24vw] max-w-[380px] h-auto object-contain animate-left-image" 
         />
       </div>
 
@@ -28,7 +28,7 @@ const Menu = ({ onAddToCart }) => {
           key={`right-${activeTab}`}
           src="/imagenes_tazas_cafe/derecha.png" 
           alt="" 
-          className="w-[18vw] max-w-[280px] h-auto object-contain animate-right-image" 
+          className="w-[24vw] max-w-[380px] h-auto object-contain animate-right-image" 
         />
       </div>
 

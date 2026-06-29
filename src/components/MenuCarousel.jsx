@@ -45,7 +45,7 @@ const MenuCarousel = ({ onAddToCart }) => {
           <div className="w-20 h-1 bg-[#C5A880] mx-auto rounded-full"></div>
         </div>
 
-        <div className="flex gap-6 overflow-x-auto snap-x mandatory pb-6 hide-scrollbar">
+        <div className="flex justify-center gap-6 overflow-x-auto snap-x mandatory pb-6 hide-scrollbar">
           {items.map((item) => (
             <Card key={item.id} item={item} onAddToCart={onAddToCart} />
           ))}
