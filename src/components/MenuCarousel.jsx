@@ -22,7 +22,8 @@ const MenuCarousel = ({ onAddToCart }) => {
       img: '/Comida_Carrusel2/Fondue Chocolate 6.50$.png',
       nombre: 'Fondue Chocolate',
       precioNum: 6.50,
-      menuId: 'm5'
+      menuId: 'm5',
+      imgScale: 'scale-125'
     },
     {
       id: 'c3',
@@ -83,12 +84,14 @@ const Card = ({ item, onAddToCart }) => {
   return (
     <div className="w-[80vw] max-w-xs sm:w-72 bg-white rounded-2xl shadow-lg flex-shrink-0 snap-center border border-gray-100 flex flex-col justify-between pt-24">
       <div>
-        <div className="relative">
-          <img
-            src={item.img}
-            alt={item.titulo}
-            className="w-40 h-40 rounded-full object-cover mx-auto shadow-2xl border-4 border-white -mt-36"
-          />
+        <div className="relative flex justify-center">
+          <div className="w-48 h-48 rounded-full bg-white shadow-2xl border-4 border-white flex items-center justify-center overflow-hidden -mt-40">
+            <img
+              src={item.img}
+              alt={item.titulo}
+              className={`w-full h-full object-cover transition-transform duration-300 ${item.imgScale || 'scale-105'}`}
+            />
+          </div>
         </div>
 
         <div className="p-4 pt-2">
