@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Star, MessageSquare, Trash2, User, Send } from 'lucide-react';
-import { collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { Star, MessageSquare, User, Send } from 'lucide-react';
+import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from 'firebase/firestore';
 import { db } from '../db/firebaseConfig';
 
 const Comments = () => {
@@ -17,6 +17,8 @@ const Comments = () => {
     const q = query(collection(db, 'comments'), orderBy('timestamp', 'desc'));
     const unsub = onSnapshot(q, (snap) => {
       setComments(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, (err) => {
+      console.error('Error al cargar comentarios:', err);
     });
     return () => unsub();
   }, []);

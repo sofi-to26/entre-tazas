@@ -15,11 +15,15 @@ const AdminDashboard = ({ user, onLogout }) => {
     const qOrders = query(collection(db, 'orders'), orderBy('timestamp', 'desc'));
     const unsubOrders = onSnapshot(qOrders, (snap) => {
       setOrders(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, (err) => {
+      console.error('Error al cargar pedidos:', err);
     });
 
     const qComments = query(collection(db, 'comments'), orderBy('timestamp', 'desc'));
     const unsubComments = onSnapshot(qComments, (snap) => {
       setComments(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, (err) => {
+      console.error('Error al cargar comentarios:', err);
     });
 
     return () => {

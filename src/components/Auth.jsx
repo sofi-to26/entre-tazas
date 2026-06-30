@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { auth } from '../db/firebaseConfig';
-import { Lock, LogOut, Mail, Eye, EyeOff } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
+
+const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'admin@entretazas.com';
 
 const Auth = ({ onAuth }) => {
   const [email, setEmail] = useState('');
@@ -16,15 +18,20 @@ const Auth = ({ onAuth }) => {
     setLoading(true);
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
+      if (cred.user.email !== ADMIN_EMAIL) {
+        await signOut(auth);
+        setError('No tienes permisos de administrador.');
+        return;
+      }
       onAuth(cred.user);
     } catch (err) {
       const msgs = {
-        'auth/invalid-credential': 'Email o contrasena incorrectos.',
-        'auth/too-many-requests': 'Demasiados intentos. Intenta mas tarde.',
+        'auth/invalid-credential': 'Email o contraseña incorrectos.',
+        'auth/too-many-requests': 'Demasiados intentos. Intenta más tarde.',
         'auth/user-not-found': 'Usuario no encontrado.',
-        'auth/wrong-password': 'Contrasena incorrecta.'
+        'auth/wrong-password': 'Contraseña incorrecta.'
       };
-      setError(msgs[err.code] || 'Error al iniciar sesion.');
+      setError(msgs[err.code] || 'Error al iniciar sesión.');
     }
     setLoading(false);
   };
@@ -57,7 +64,7 @@ const Auth = ({ onAuth }) => {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Contrasena</label>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Contraseña</label>
             <div className="relative">
               <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input

@@ -167,12 +167,13 @@ const Gallery = () => {
                   <img
                     src={item.img}
                     alt={item.title}
+                    loading="lazy"
                     className="w-full h-full object-cover rounded-2xl pointer-events-none"
                   />
 
                   {/* Dark overlay for inactive images (progressively darker) */}
                   <div
-                    className="absolute inset-0 bg-black rounded-2xl transition-opacity duration-600 pointer-events-none"
+                    className="absolute inset-0 bg-black rounded-2xl transition-opacity duration-500 pointer-events-none"
                     style={{
                       opacity: isActive ? 0 : Math.min(Math.abs(diff) * 0.35, 0.7),
                     }}
@@ -180,7 +181,7 @@ const Gallery = () => {
 
                   {/* Text Overlay for Active Card only */}
                   <div
-                    className={`absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent flex flex-col justify-end p-6 rounded-2xl transition-all duration-600 ${
+                    className={`absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent flex flex-col justify-end p-6 rounded-2xl transition-all duration-500 ${
                       isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6 pointer-events-none'
                     }`}
                   >

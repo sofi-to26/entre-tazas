@@ -17,7 +17,7 @@ const MenuCarousel = ({ onAddToCart }) => {
     {
       id: 'c2',
       titulo: 'Fondue Chocolate',
-      desc: 'Waffles, fresas y cambur',
+      desc: 'Waffles, fresas, marshmallows y cambur',
       precio: '$6.50',
       img: '/Comida_Carrusel2/Fondue Chocolate 6.50$.png',
       nombre: 'Fondue Chocolate',
