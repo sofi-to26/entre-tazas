@@ -44,8 +44,8 @@ const MenuCarousel = ({ onAddToCart }) => {
         <div className="w-20 h-1 bg-[#C5A880] mx-auto rounded-full"></div>
       </div>
 
-      {/* Scroll track — full bleed so cards peek on the edges on mobile */}
-      <div className="overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-4">
+      {/* Scroll track — full bleed so cards peek on the edges on mobile. pt-24 allows space for the floating image */}
+      <div className="overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-4 pt-24 mt-2">
         {/* Inner row: px padding creates the "peek" effect and centres on desktop */}
         <div className="flex gap-5 px-6 w-max mx-auto">
           {items.map((item) => (
@@ -81,17 +81,17 @@ const Card = ({ item, onAddToCart }) => {
   };
 
   return (
-    <div className="w-[80vw] max-w-xs sm:w-72 bg-white rounded-2xl shadow-lg flex-shrink-0 snap-center overflow-hidden border border-gray-100 flex flex-col justify-between">
+    <div className="w-[80vw] max-w-xs sm:w-72 bg-white rounded-2xl shadow-lg flex-shrink-0 snap-center border border-gray-100 flex flex-col justify-between pt-24">
       <div>
-        <div className="h-48 w-full overflow-hidden">
+        <div className="relative">
           <img
             src={item.img}
             alt={item.titulo}
-            className="w-full h-full object-cover"
+            className="w-40 h-40 rounded-full object-cover mx-auto shadow-2xl border-4 border-white -mt-36"
           />
         </div>
 
-        <div className="p-4">
+        <div className="p-4 pt-2">
           <div className="flex justify-between items-start gap-2 mb-1">
             <h3 className="text-base font-bold text-[#162444] leading-tight">{item.titulo}</h3>
             <span className="text-[#C5A880] font-black text-sm whitespace-nowrap">{item.precio}</span>
