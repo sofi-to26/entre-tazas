@@ -1,43 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Star, MessageSquare, Trash2, User, Send } from 'lucide-react';
-
-const defaultComments = [
-  {
-    id: 1,
-    nombre: 'Sofia Torres',
-    fecha: '2026-06-25',
-    estrellas: 5,
-    texto: '¡Las empanadas de carne mechada son increíbles! El ambiente es muy acogedor y el café es de primera.'
-  },
-  {
-    id: 2,
-    nombre: 'Alejandro Gómez',
-    fecha: '2026-06-24',
-    estrellas: 4,
-    texto: 'Muy buena atención y los tequeños estaban crujientes. El capuccino tiene una presentación espectacular.'
-  },
-  {
-    id: 3,
-    nombre: 'Valeria Rivas',
-    fecha: '2026-06-26',
-    estrellas: 5,
-    texto: 'La mejor arepa de la casa de toda Mérida. Excelente servicio y el pan de jamón siempre fresco.'
-  }
-];
+import { collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../db/firebaseConfig';
 
 const Comments = () => {
-  const [comments, setComments] = useState(() => {
-    const saved = localStorage.getItem('entre-tazas-comments');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error('Error al cargar comentarios:', e);
-      }
-    }
-    return defaultComments;
-  });
-
+  const [comments, setComments] = useState([]);
   const [nombre, setNombre] = useState('');
   const [texto, setTexto] = useState('');
   const [estrellas, setEstrellas] = useState(5);
@@ -46,38 +13,57 @@ const Comments = () => {
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('entre-tazas-comments', JSON.stringify(comments));
-  }, [comments]);
+    if (!db) return;
+    const q = query(collection(db, 'comments'), orderBy('timestamp', 'desc'));
+    const unsub = onSnapshot(q, (snap) => {
+      setComments(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return () => unsub();
+  }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!nombre.trim() || !texto.trim()) {
       setError('Por favor, completa todos los campos.');
       return;
     }
 
-    const nuevoComentario = {
-      id: Date.now(),
-      nombre: nombre.trim(),
-      texto: texto.trim(),
-      estrellas,
-      fecha: new Date().toISOString().split('T')[0]
-    };
+    if (db) {
+      try {
+        await addDoc(collection(db, 'comments'), {
+          nombre: nombre.trim(),
+          texto: texto.trim(),
+          estrellas,
+          fecha: new Date().toISOString().split('T')[0],
+          timestamp: serverTimestamp()
+        });
+        
+        setNombre('');
+        setTexto('');
+        setEstrellas(5);
+        setError('');
+        setSuccess(true);
 
-    setComments([nuevoComentario, ...comments]);
-    setNombre('');
-    setTexto('');
-    setEstrellas(5);
-    setError('');
-    setSuccess(true);
-
-    setTimeout(() => {
-      setSuccess(false);
-    }, 3000);
+        setTimeout(() => {
+          setSuccess(false);
+        }, 3000);
+      } catch (err) {
+        console.error('Error al guardar comentario:', err);
+        setError('Hubo un error al guardar tu comentario. Inténtalo de nuevo.');
+      }
+    } else {
+      setError('La base de datos no está disponible en este momento.');
+    }
   };
 
-  const handleDelete = (id) => {
-    setComments(comments.filter(c => c.id !== id));
+  const handleDelete = async (id) => {
+    if (db) {
+      try {
+        await deleteDoc(doc(db, 'comments', id));
+      } catch (err) {
+        console.error('Error al eliminar comentario:', err);
+      }
+    }
   };
 
   return (
