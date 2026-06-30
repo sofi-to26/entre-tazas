@@ -56,16 +56,6 @@ const Comments = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (db) {
-      try {
-        await deleteDoc(doc(db, 'comments', id));
-      } catch (err) {
-        console.error('Error al eliminar comentario:', err);
-      }
-    }
-  };
-
   return (
     <section id="comentarios" className="py-20 bg-arena/40">
       <div className="container mx-auto px-6 max-w-5xl">
@@ -188,15 +178,6 @@ const Comments = () => {
                   <p className="text-gray-600 leading-relaxed font-light text-sm italic">
                     "{comment.texto}"
                   </p>
-
-                  {/* Delete Button (visible on card hover) */}
-                  <button
-                    onClick={() => handleDelete(comment.id)}
-                    className="absolute top-4 right-4 text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 rounded-lg hover:bg-red-50"
-                    title="Eliminar comentario"
-                  >
-                    <Trash2 size={16} />
-                  </button>
                 </div>
               ))
             )}

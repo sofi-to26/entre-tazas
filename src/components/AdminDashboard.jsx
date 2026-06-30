@@ -6,15 +6,26 @@ import { CheckCircle, Trash2, LogOut, Clock, Package, TrendingUp, ShoppingBag } 
 
 const AdminDashboard = ({ user, onLogout }) => {
   const [orders, setOrders] = useState([]);
+  const [comments, setComments] = useState([]);
   const [filter, setFilter] = useState('all');
+  const [activeTab, setActiveTab] = useState('orders');
 
   useEffect(() => {
     if (!db) return;
-    const q = query(collection(db, 'orders'), orderBy('timestamp', 'desc'));
-    const unsub = onSnapshot(q, (snap) => {
+    const qOrders = query(collection(db, 'orders'), orderBy('timestamp', 'desc'));
+    const unsubOrders = onSnapshot(qOrders, (snap) => {
       setOrders(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
-    return () => unsub();
+
+    const qComments = query(collection(db, 'comments'), orderBy('timestamp', 'desc'));
+    const unsubComments = onSnapshot(qComments, (snap) => {
+      setComments(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+
+    return () => {
+      unsubOrders();
+      unsubComments();
+    };
   }, []);
 
   const confirmOrder = async (id) => {
@@ -26,6 +37,13 @@ const AdminDashboard = ({ user, onLogout }) => {
     if (!db) return;
     if (window.confirm('Eliminar este pedido?')) {
       await deleteDoc(doc(db, 'orders', id));
+    }
+  };
+
+  const deleteComment = async (id) => {
+    if (!db) return;
+    if (window.confirm('¿Eliminar este comentario?')) {
+      await deleteDoc(doc(db, 'comments', id));
     }
   };
 
@@ -70,74 +88,150 @@ const AdminDashboard = ({ user, onLogout }) => {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatCard icon={<Package size={20} />} label="Total Pedidos" value={totalOrders} color="bg-blue-50 text-blue-600" />
-          <StatCard icon={<Clock size={20} />} label="Pendientes" value={pendingOrders} color="bg-amber-50 text-amber-600" />
-          <StatCard icon={<CheckCircle size={20} />} label="Confirmados" value={confirmedOrders} color="bg-green-50 text-green-600" />
-          <StatCard icon={<TrendingUp size={20} />} label="Ingresos" value={`$${totalRevenue.toFixed(2)}`} color="bg-purple-50 text-purple-600" />
+        {/* Tabs */}
+        <div className="flex gap-4 mb-6 border-b border-gray-200">
+          <button
+            onClick={() => setActiveTab('orders')}
+            className={`pb-3 font-bold text-sm tracking-wider uppercase transition-colors ${
+              activeTab === 'orders' ? 'text-[#162444] border-b-2 border-[#162444]' : 'text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            Gestión de Pedidos
+          </button>
+          <button
+            onClick={() => setActiveTab('comments')}
+            className={`pb-3 font-bold text-sm tracking-wider uppercase transition-colors ${
+              activeTab === 'comments' ? 'text-[#162444] border-b-2 border-[#162444]' : 'text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            Gestión de Comentarios
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Top Products */}
-          <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100">
-            <h3 className="font-bold text-[#162444] flex items-center gap-2 mb-4">
-              <ShoppingBag size={18} className="text-[#C5A880]" /> Top Productos
-            </h3>
-            {topProducts.length === 0 ? (
-              <p className="text-gray-400 text-sm">Sin datos aun</p>
-            ) : (
-              <ul className="space-y-3">
-                {topProducts.map(([name, count], i) => (
-                  <li key={name} className="flex justify-between items-center text-sm">
-                    <span className="text-gray-700">
-                      <span className="font-bold text-[#C5A880] mr-2">#{i + 1}</span>
-                      {name}
-                    </span>
-                    <span className="bg-gray-100 px-2 py-0.5 rounded-full text-xs font-bold text-gray-600">{count}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          {/* Orders Table */}
-          <div className="lg:col-span-3">
-            <div className="flex items-center gap-3 mb-4">
-              {['all', 'pendiente', 'confirmado'].map(f => (
-                <button
-                  key={f}
-                  onClick={() => setFilter(f)}
-                  className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${
-                    filter === f
-                      ? 'bg-[#162444] text-white shadow-md'
-                      : 'bg-white text-gray-500 border border-gray-200 hover:border-[#C5A880]'
-                  }`}
-                >
-                  {f === 'all' ? 'Todos' : f === 'pendiente' ? 'Pendientes' : 'Confirmados'}
-                </button>
-              ))}
+        {activeTab === 'orders' ? (
+          <>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              <StatCard icon={<Package size={20} />} label="Total Pedidos" value={totalOrders} color="bg-blue-50 text-blue-600" />
+              <StatCard icon={<Clock size={20} />} label="Pendientes" value={pendingOrders} color="bg-amber-50 text-amber-600" />
+              <StatCard icon={<CheckCircle size={20} />} label="Confirmados" value={confirmedOrders} color="bg-green-50 text-green-600" />
+              <StatCard icon={<TrendingUp size={20} />} label="Ingresos" value={`$${totalRevenue.toFixed(2)}`} color="bg-purple-50 text-purple-600" />
             </div>
 
-            {filtered.length === 0 ? (
-              <div className="bg-white rounded-2xl shadow-md p-12 text-center border border-gray-100">
-                <Package size={48} className="mx-auto text-gray-300 mb-3" />
-                <p className="text-gray-400 font-medium">No hay pedidos</p>
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              {/* Top Products */}
+              <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100">
+                <h3 className="font-bold text-[#162444] flex items-center gap-2 mb-4">
+                  <ShoppingBag size={18} className="text-[#C5A880]" /> Top Productos
+                </h3>
+                {topProducts.length === 0 ? (
+                  <p className="text-gray-400 text-sm">Sin datos aun</p>
+                ) : (
+                  <ul className="space-y-3">
+                    {topProducts.map(([name, count], i) => (
+                      <li key={name} className="flex justify-between items-center text-sm">
+                        <span className="text-gray-700">
+                          <span className="font-bold text-[#C5A880] mr-2">#{i + 1}</span>
+                          {name}
+                        </span>
+                        <span className="bg-gray-100 px-2 py-0.5 rounded-full text-xs font-bold text-gray-600">{count}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
-            ) : (
-              <div className="space-y-4">
-                {filtered.map(order => (
-                  <OrderCard
-                    key={order.id}
-                    order={order}
-                    onConfirm={confirmOrder}
-                    onDelete={deleteOrder}
-                  />
-                ))}
+
+              {/* Orders Table */}
+              <div className="lg:col-span-3">
+                <div className="flex items-center gap-3 mb-4">
+                  {['all', 'pendiente', 'confirmado'].map(f => (
+                    <button
+                      key={f}
+                      onClick={() => setFilter(f)}
+                      className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${
+                        filter === f
+                          ? 'bg-[#162444] text-white shadow-md'
+                          : 'bg-white text-gray-500 border border-gray-200 hover:border-[#C5A880]'
+                      }`}
+                    >
+                      {f === 'all' ? 'Todos' : f === 'pendiente' ? 'Pendientes' : 'Confirmados'}
+                    </button>
+                  ))}
+                </div>
+
+                {filtered.length === 0 ? (
+                  <div className="bg-white rounded-2xl shadow-md p-12 text-center border border-gray-100">
+                    <Package size={48} className="mx-auto text-gray-300 mb-3" />
+                    <p className="text-gray-400 font-medium">No hay pedidos</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {filtered.map(order => (
+                      <OrderCard
+                        key={order.id}
+                        order={order}
+                        onConfirm={confirmOrder}
+                        onDelete={deleteOrder}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+          </>
+        ) : (
+          <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
+            <div className="p-6 border-b border-gray-100">
+              <h3 className="font-bold text-xl text-[#162444]">Comentarios de Usuarios</h3>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-gray-50 text-gray-500 uppercase tracking-wider text-xs">
+                  <tr>
+                    <th className="px-6 py-4 font-bold">Fecha</th>
+                    <th className="px-6 py-4 font-bold">Nombre</th>
+                    <th className="px-6 py-4 font-bold">Calificación</th>
+                    <th className="px-6 py-4 font-bold">Comentario</th>
+                    <th className="px-6 py-4 font-bold text-right">Acción</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {comments.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="px-6 py-12 text-center text-gray-400 font-medium">
+                        No hay comentarios registrados
+                      </td>
+                    </tr>
+                  ) : (
+                    comments.map(comment => (
+                      <tr key={comment.id} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-6 py-4 text-gray-500 whitespace-nowrap">{comment.fecha}</td>
+                        <td className="px-6 py-4 font-bold text-[#162444] whitespace-nowrap">{comment.nombre}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="bg-dorado/10 text-dorado font-bold px-2.5 py-1 rounded-full text-xs">
+                            {comment.estrellas} / 5
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-gray-600 italic">"{comment.texto}"</td>
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => deleteComment(comment.id)}
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors inline-flex items-center"
+                            title="Eliminar"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        )}
+
       </div>
     </div>
   );
