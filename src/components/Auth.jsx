@@ -3,7 +3,7 @@ import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { auth } from '../db/firebaseConfig';
 import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
 
-const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'admin@entretazas.com';
+const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'sofiavalentinatorrespicon@gmail.com';
 
 const Auth = ({ onAuth }) => {
   const [email, setEmail] = useState('');
