@@ -16,6 +16,20 @@ function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminUser, setAdminUser] = useState(null);
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem('entre-tazas-theme') === 'dark';
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (darkMode) {
+      root.classList.add('dark');
+      localStorage.setItem('entre-tazas-theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('entre-tazas-theme', 'light');
+    }
+  }, [darkMode]);
 
   // Check hash for admin route
   useEffect(() => {
@@ -92,8 +106,13 @@ function App() {
 
   // Public site
   return (
-    <div className="font-sans text-gray-800 antialiased">
-      <Navbar cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)} onOpenCart={() => setIsCartOpen(true)} />
+    <div className="font-sans text-gray-800 antialiased bg-white dark:bg-[#0a1225] dark:text-gray-100 transition-colors duration-300">
+      <Navbar
+        cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
+        onOpenCart={() => setIsCartOpen(true)}
+        darkMode={darkMode}
+        toggleDarkMode={() => setDarkMode(d => !d)}
+      />
       <main>
         <Hero />
         <MenuCarousel onAddToCart={addToCart} />

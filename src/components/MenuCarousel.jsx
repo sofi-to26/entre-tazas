@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Star, ShoppingCart } from 'lucide-react';
+import { motion, useInView } from 'framer-motion';
 
 const MenuCarousel = ({ onAddToCart }) => {
   const items = [
@@ -38,19 +39,33 @@ const MenuCarousel = ({ onAddToCart }) => {
     }
   ];
 
-  return (
-    <section className="py-16 bg-arena/20">
-      <div className="text-center mb-10 px-6">
-        <h2 className="text-3xl font-bold text-[#162444] mb-2">Recomendados de la Casa</h2>
-        <div className="w-20 h-1 bg-[#C5A880] mx-auto rounded-full"></div>
-      </div>
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: '-60px' });
 
-      {/* Scroll track — full bleed so cards peek on the edges on mobile. pt-24 allows space for the floating image */}
+  return (
+    <section className="py-16 bg-arena/20 dark:bg-[#0a1225] transition-colors duration-300" ref={ref}>
+      <motion.div
+        initial={{ opacity: 0, y: 25 }}
+        animate={isInView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.7 }}
+        className="text-center mb-10 px-6"
+      >
+        <h2 className="text-3xl font-bold text-[#162444] dark:text-dorado mb-2">Recomendados de la Casa</h2>
+        <div className="w-20 h-1 bg-[#C5A880] mx-auto rounded-full"></div>
+      </motion.div>
+
+      {/* Scroll track */}
       <div className="overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-4 pt-24 mt-2">
-        {/* Inner row: px padding creates the "peek" effect and centres on desktop */}
         <div className="flex gap-5 px-6 w-max mx-auto">
-          {items.map((item) => (
-            <Card key={item.id} item={item} onAddToCart={onAddToCart} />
+          {items.map((item, i) => (
+            <motion.div
+              key={item.id}
+              initial={{ opacity: 0, y: 40 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.5, delay: i * 0.15, ease: 'easeOut' }}
+            >
+              <Card item={item} onAddToCart={onAddToCart} />
+            </motion.div>
           ))}
         </div>
       </div>
@@ -82,7 +97,7 @@ const Card = ({ item, onAddToCart }) => {
   };
 
   return (
-    <div className="w-[80vw] max-w-xs sm:w-72 bg-white rounded-2xl shadow-lg flex-shrink-0 snap-center border border-gray-100 flex flex-col justify-between pt-24">
+    <div className="w-[80vw] max-w-xs sm:w-72 bg-white dark:bg-[#0d1b35] dark:border-white/10 rounded-2xl shadow-lg flex-shrink-0 snap-center border border-gray-100 flex flex-col justify-between pt-24">
       <div>
         <div className="relative flex justify-center">
           <div className="w-48 h-48 rounded-full bg-white shadow-2xl border-4 border-white flex items-center justify-center overflow-hidden -mt-40">
