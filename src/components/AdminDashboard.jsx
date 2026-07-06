@@ -1,35 +1,67 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { collection, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
 import { db } from '../db/firebaseConfig';
 import { logout } from './Auth';
-import { CheckCircle, Trash2, LogOut, Clock, Package, TrendingUp, ShoppingBag } from 'lucide-react';
+import {
+  CheckCircle, Trash2, LogOut, Clock, Package,
+  TrendingUp, ShoppingBag, Download, MessageSquare, Bell
+} from 'lucide-react';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend
+} from 'recharts';
+import * as XLSX from 'xlsx';
 
+// ── Notificación sonora ──────────────────────────────────────────
+const playDing = () => {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    oscillator.frequency.setValueAtTime(880, ctx.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.15);
+    gainNode.gain.setValueAtTime(0.4, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    oscillator.start(ctx.currentTime);
+    oscillator.stop(ctx.currentTime + 0.5);
+  } catch (e) { /* sin soporte */ }
+};
+
+const COLORS = ['#C5A880', '#162444', '#8B6914', '#1e3a6e', '#d4af37'];
+
+// ── Componente Principal ────────────────────────────────────────
 const AdminDashboard = ({ user, onLogout }) => {
   const [orders, setOrders] = useState([]);
   const [comments, setComments] = useState([]);
   const [filter, setFilter] = useState('all');
   const [activeTab, setActiveTab] = useState('orders');
+  const prevOrderCount = useRef(null);
+  const [newOrderAlert, setNewOrderAlert] = useState(false);
 
   useEffect(() => {
     if (!db) return;
+
     const qOrders = query(collection(db, 'orders'), orderBy('timestamp', 'desc'));
     const unsubOrders = onSnapshot(qOrders, (snap) => {
-      setOrders(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, (err) => {
-      console.error('Error al cargar pedidos:', err);
+      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setOrders(data);
+      // Notificación sonora solo cuando llega uno nuevo (no en la carga inicial)
+      if (prevOrderCount.current !== null && data.length > prevOrderCount.current) {
+        playDing();
+        setNewOrderAlert(true);
+        setTimeout(() => setNewOrderAlert(false), 4000);
+      }
+      prevOrderCount.current = data.length;
     });
 
     const qComments = query(collection(db, 'comments'), orderBy('timestamp', 'desc'));
     const unsubComments = onSnapshot(qComments, (snap) => {
       setComments(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, (err) => {
-      console.error('Error al cargar comentarios:', err);
     });
 
-    return () => {
-      unsubOrders();
-      unsubComments();
-    };
+    return () => { unsubOrders(); unsubComments(); };
   }, []);
 
   const confirmOrder = async (id) => {
@@ -39,42 +71,69 @@ const AdminDashboard = ({ user, onLogout }) => {
 
   const deleteOrder = async (id) => {
     if (!db) return;
-    if (window.confirm('Eliminar este pedido?')) {
-      await deleteDoc(doc(db, 'orders', id));
-    }
+    if (window.confirm('¿Eliminar este pedido?')) await deleteDoc(doc(db, 'orders', id));
   };
 
   const deleteComment = async (id) => {
     if (!db) return;
-    if (window.confirm('¿Eliminar este comentario?')) {
-      await deleteDoc(doc(db, 'comments', id));
-    }
+    if (window.confirm('¿Eliminar este comentario?')) await deleteDoc(doc(db, 'comments', id));
   };
 
-  const handleLogout = async () => {
-    await logout();
-    onLogout();
-  };
+  const handleLogout = async () => { await logout(); onLogout(); };
 
-  // Stats
+  // ── Exportar a Excel ──
+  const exportToExcel = useCallback(() => {
+    const rows = orders
+      .filter(o => o.status === 'confirmado')
+      .map(o => ({
+        'Fecha': o.timestamp?.toDate?.().toLocaleString('es-VE') || '—',
+        'Cliente': o.clientName || '—',
+        'Dirección': o.address || '—',
+        'Productos': (o.products || []).map(p => `${p.quantity}x ${p.nombre}`).join(', '),
+        'Total ($)': (o.total || 0).toFixed(2),
+      }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Pedidos Confirmados');
+    XLSX.writeFile(wb, `EnteTazas_Pedidos_${new Date().toISOString().split('T')[0]}.xlsx`);
+  }, [orders]);
+
+  // ── Stats ──
   const totalOrders = orders.length;
   const confirmedOrders = orders.filter(o => o.status === 'confirmado').length;
   const pendingOrders = orders.filter(o => o.status === 'pendiente').length;
+  const totalRevenue = orders.filter(o => o.status === 'confirmado').reduce((s, o) => s + (o.total || 0), 0);
 
-  const totalRevenue = orders
-    .filter(o => o.status === 'confirmado')
-    .reduce((sum, o) => sum + (o.total || 0), 0);
-
-  // Top products
+  // ── Top Products ──
   const productCount = {};
-  orders.forEach(o => {
-    (o.products || []).forEach(p => {
-      productCount[p.nombre] = (productCount[p.nombre] || 0) + (p.quantity || 1);
-    });
+  orders.forEach(o => (o.products || []).forEach(p => {
+    productCount[p.nombre] = (productCount[p.nombre] || 0) + (p.quantity || 1);
+  }));
+  const topProducts = Object.entries(productCount).sort(([, a], [, b]) => b - a).slice(0, 5);
+
+  // ── Ventas por día (últimos 7 días) ──
+  const last7 = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return d.toLocaleDateString('es-VE', { weekday: 'short', day: 'numeric' });
   });
-  const topProducts = Object.entries(productCount)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 5);
+  const salesByDay = last7.map(label => {
+    const dayOrders = orders.filter(o => {
+      const d = o.timestamp?.toDate?.();
+      if (!d) return false;
+      return d.toLocaleDateString('es-VE', { weekday: 'short', day: 'numeric' }) === label;
+    });
+    return { day: label, ventas: dayOrders.reduce((s, o) => s + (o.total || 0), 0) };
+  });
+
+  // ── Pie chart: pedidos por estado ──
+  const pieData = [
+    { name: 'Pendientes', value: pendingOrders },
+    { name: 'Confirmados', value: confirmedOrders },
+  ].filter(d => d.value > 0);
+
+  // ── Top 5 productos para barra ──
+  const barData = topProducts.map(([name, count]) => ({ name: name.length > 12 ? name.slice(0, 12) + '…' : name, cantidad: count }));
 
   const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter);
 
@@ -82,66 +141,136 @@ const AdminDashboard = ({ user, onLogout }) => {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-[#162444] text-white py-4 px-6 flex justify-between items-center sticky top-0 z-50 shadow-lg">
-        <div>
-          <h1 className="text-xl font-bold tracking-wide">Entre Tazas Admin</h1>
-          <p className="text-xs text-gray-400">{user?.email}</p>
+        <div className="flex items-center gap-3">
+          <div>
+            <h1 className="text-xl font-bold tracking-wide">Entre Tazas Admin</h1>
+            <p className="text-xs text-gray-400">{user?.email}</p>
+          </div>
+          {newOrderAlert && (
+            <span className="flex items-center gap-1.5 bg-dorado text-corporativo text-xs font-bold px-3 py-1 rounded-full animate-bounce">
+              <Bell size={13} /> ¡Nuevo pedido!
+            </span>
+          )}
         </div>
-        <button onClick={handleLogout} className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-sm transition-colors">
-          <LogOut size={16} /> Salir
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={exportToExcel}
+            className="flex items-center gap-2 bg-[#C5A880] hover:bg-[#d4af37] text-[#162444] px-4 py-2 rounded-lg text-sm font-bold transition-colors"
+          >
+            <Download size={16} /> Exportar Excel
+          </button>
+          <button onClick={handleLogout} className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-sm transition-colors">
+            <LogOut size={16} /> Salir
+          </button>
+        </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <StatCard icon={<Package size={20} />} label="Total Pedidos" value={totalOrders} color="bg-blue-50 text-blue-600" />
+          <StatCard icon={<Clock size={20} />} label="Pendientes" value={pendingOrders} color="bg-amber-50 text-amber-600" />
+          <StatCard icon={<CheckCircle size={20} />} label="Confirmados" value={confirmedOrders} color="bg-green-50 text-green-600" />
+          <StatCard icon={<TrendingUp size={20} />} label="Ingresos" value={`$${totalRevenue.toFixed(2)}`} color="bg-purple-50 text-purple-600" />
+        </div>
+
+        {/* Charts Row */}
+        {orders.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            {/* Bar Chart: Ventas por día */}
+            <div className="lg:col-span-2 bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+              <h3 className="font-bold text-[#162444] mb-4 flex items-center gap-2">
+                <TrendingUp size={18} className="text-[#C5A880]" /> Ventas Últimos 7 Días ($)
+              </h3>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={salesByDay} margin={{ top: 0, right: 10, left: -10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="day" tick={{ fontSize: 11, fill: '#666' }} />
+                  <YAxis tick={{ fontSize: 11, fill: '#666' }} />
+                  <Tooltip
+                    formatter={(value) => [`$${value.toFixed(2)}`, 'Ventas']}
+                    contentStyle={{ borderRadius: '10px', border: '1px solid #eee', fontSize: 12 }}
+                  />
+                  <Bar dataKey="ventas" fill="#C5A880" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Pie Chart: Estado de pedidos */}
+            <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+              <h3 className="font-bold text-[#162444] mb-4 flex items-center gap-2">
+                <Package size={18} className="text-[#C5A880]" /> Estado Pedidos
+              </h3>
+              {pieData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
+                      {pieData.map((_, index) => (
+                        <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ borderRadius: '10px', border: '1px solid #eee', fontSize: 12 }} />
+                    <Legend iconSize={10} wrapperStyle={{ fontSize: 12 }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="text-gray-400 text-sm text-center py-10">Sin pedidos aún</p>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Tabs */}
         <div className="flex gap-4 mb-6 border-b border-gray-200">
-          <button
-            onClick={() => setActiveTab('orders')}
-            className={`pb-3 font-bold text-sm tracking-wider uppercase transition-colors ${
-              activeTab === 'orders' ? 'text-[#162444] border-b-2 border-[#162444]' : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            Gestión de Pedidos
-          </button>
-          <button
-            onClick={() => setActiveTab('comments')}
-            className={`pb-3 font-bold text-sm tracking-wider uppercase transition-colors ${
-              activeTab === 'comments' ? 'text-[#162444] border-b-2 border-[#162444]' : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            Gestión de Comentarios
-          </button>
+          {[
+            { id: 'orders', label: 'Gestión de Pedidos', icon: <Package size={15} /> },
+            { id: 'comments', label: 'Comentarios', icon: <MessageSquare size={15} /> },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 pb-3 font-bold text-sm tracking-wider uppercase transition-colors ${
+                activeTab === tab.id ? 'text-[#162444] border-b-2 border-[#162444]' : 'text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              {tab.icon} {tab.label}
+            </button>
+          ))}
         </div>
 
         {activeTab === 'orders' ? (
           <>
-            {/* Stats Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <StatCard icon={<Package size={20} />} label="Total Pedidos" value={totalOrders} color="bg-blue-50 text-blue-600" />
-              <StatCard icon={<Clock size={20} />} label="Pendientes" value={pendingOrders} color="bg-amber-50 text-amber-600" />
-              <StatCard icon={<CheckCircle size={20} />} label="Confirmados" value={confirmedOrders} color="bg-green-50 text-green-600" />
-              <StatCard icon={<TrendingUp size={20} />} label="Ingresos" value={`$${totalRevenue.toFixed(2)}`} color="bg-purple-50 text-purple-600" />
-            </div>
-
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {/* Top Products */}
+              {/* Top Products Sidebar */}
               <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100">
-                <h3 className="font-bold text-[#162444] flex items-center gap-2 mb-4">
+                <h3 className="font-bold text-[#162444] flex items-center gap-2 mb-5">
                   <ShoppingBag size={18} className="text-[#C5A880]" /> Top Productos
                 </h3>
                 {topProducts.length === 0 ? (
-                  <p className="text-gray-400 text-sm">Sin datos aun</p>
+                  <p className="text-gray-400 text-sm">Sin datos aún</p>
                 ) : (
-                  <ul className="space-y-3">
-                    {topProducts.map(([name, count], i) => (
-                      <li key={name} className="flex justify-between items-center text-sm">
-                        <span className="text-gray-700">
-                          <span className="font-bold text-[#C5A880] mr-2">#{i + 1}</span>
-                          {name}
-                        </span>
-                        <span className="bg-gray-100 px-2 py-0.5 rounded-full text-xs font-bold text-gray-600">{count}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <>
+                    <ul className="space-y-3 mb-5">
+                      {topProducts.map(([name, count], i) => (
+                        <li key={name} className="flex justify-between items-center text-sm">
+                          <span className="text-gray-700 truncate max-w-[140px]">
+                            <span className="font-bold text-[#C5A880] mr-2">#{i + 1}</span>{name}
+                          </span>
+                          <span className="bg-gray-100 px-2 py-0.5 rounded-full text-xs font-bold text-gray-600 flex-shrink-0">{count}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    {barData.length > 0 && (
+                      <ResponsiveContainer width="100%" height={100}>
+                        <BarChart data={barData} layout="vertical" margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                          <XAxis type="number" hide />
+                          <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} width={70} />
+                          <Tooltip contentStyle={{ fontSize: 11, borderRadius: '8px' }} />
+                          <Bar dataKey="cantidad" fill="#162444" radius={[0, 4, 4, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
+                  </>
                 )}
               </div>
 
@@ -171,12 +300,7 @@ const AdminDashboard = ({ user, onLogout }) => {
                 ) : (
                   <div className="space-y-4">
                     {filtered.map(order => (
-                      <OrderCard
-                        key={order.id}
-                        order={order}
-                        onConfirm={confirmOrder}
-                        onDelete={deleteOrder}
-                      />
+                      <OrderCard key={order.id} order={order} onConfirm={confirmOrder} onDelete={deleteOrder} />
                     ))}
                   </div>
                 )}
@@ -184,11 +308,12 @@ const AdminDashboard = ({ user, onLogout }) => {
             </div>
           </>
         ) : (
+          /* Comments Table */
           <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
-            <div className="p-6 border-b border-gray-100">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
               <h3 className="font-bold text-xl text-[#162444]">Comentarios de Usuarios</h3>
+              <span className="bg-[#162444] text-white text-xs font-bold px-3 py-1 rounded-full">{comments.length} total</span>
             </div>
-            
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead className="bg-gray-50 text-gray-500 uppercase tracking-wider text-xs">
@@ -213,16 +338,15 @@ const AdminDashboard = ({ user, onLogout }) => {
                         <td className="px-6 py-4 text-gray-500 whitespace-nowrap">{comment.fecha}</td>
                         <td className="px-6 py-4 font-bold text-[#162444] whitespace-nowrap">{comment.nombre}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="bg-dorado/10 text-dorado font-bold px-2.5 py-1 rounded-full text-xs">
-                            {comment.estrellas} / 5
+                          <span className="bg-amber-50 text-amber-600 font-bold px-2.5 py-1 rounded-full text-xs">
+                            {'★'.repeat(comment.estrellas)} {comment.estrellas}/5
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-gray-600 italic">"{comment.texto}"</td>
+                        <td className="px-6 py-4 text-gray-600 italic max-w-xs truncate">"{comment.texto}"</td>
                         <td className="px-6 py-4 text-right">
                           <button
                             onClick={() => deleteComment(comment.id)}
-                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors inline-flex items-center"
-                            title="Eliminar"
+                            className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors inline-flex items-center"
                           >
                             <Trash2 size={16} />
                           </button>
@@ -235,12 +359,12 @@ const AdminDashboard = ({ user, onLogout }) => {
             </div>
           </div>
         )}
-
       </div>
     </div>
   );
 };
 
+// ── Sub-componentes ────────────────────────────────────────────
 const StatCard = ({ icon, label, value, color }) => (
   <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
     <div className={`inline-flex p-2 rounded-lg mb-2 ${color}`}>{icon}</div>
