@@ -1,16 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { collection, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../db/firebaseConfig';
 import { logout } from './Auth';
 import {
   CheckCircle, Trash2, LogOut, Clock, Package,
-  TrendingUp, ShoppingBag, Download, MessageSquare, Bell
+  TrendingUp, ShoppingBag, Download, MessageSquare, Bell, ToggleLeft, ToggleRight
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
 } from 'recharts';
 import * as XLSX from 'xlsx';
+import { menuData } from '../data/menuData';
 
 // ── Notificación sonora ──────────────────────────────────────────
 const playDing = () => {
@@ -35,6 +36,7 @@ const COLORS = ['#C5A880', '#162444', '#8B6914', '#1e3a6e', '#d4af37'];
 const AdminDashboard = ({ user, onLogout }) => {
   const [orders, setOrders] = useState([]);
   const [comments, setComments] = useState([]);
+  const [inventory, setInventory] = useState({});
   const [filter, setFilter] = useState('all');
   const [activeTab, setActiveTab] = useState('orders');
   const prevOrderCount = useRef(null);
@@ -47,7 +49,6 @@ const AdminDashboard = ({ user, onLogout }) => {
     const unsubOrders = onSnapshot(qOrders, (snap) => {
       const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       setOrders(data);
-      // Notificación sonora solo cuando llega uno nuevo (no en la carga inicial)
       if (prevOrderCount.current !== null && data.length > prevOrderCount.current) {
         playDing();
         setNewOrderAlert(true);
@@ -61,7 +62,31 @@ const AdminDashboard = ({ user, onLogout }) => {
       setComments(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
 
-    return () => { unsubOrders(); unsubComments(); };
+    // Seed inventory once, then subscribe
+    const allProducts = [...menuData.desayunos, ...menuData.meriendas, ...menuData.bebidas];
+    const seedAndSubscribe = async () => {
+      for (const item of allProducts) {
+        const ref = doc(db, 'inventory', item.id);
+        const snap = await getDoc(ref);
+        if (!snap.exists()) {
+          await setDoc(ref, {
+            id: item.id,
+            nombre: item.nombre,
+            categoria: item.id.startsWith('d') ? 'desayunos' : item.id.startsWith('m') ? 'meriendas' : 'bebidas',
+            available: true,
+          });
+        }
+      }
+    };
+    seedAndSubscribe();
+
+    const unsubInventory = onSnapshot(collection(db, 'inventory'), (snap) => {
+      const map = {};
+      snap.docs.forEach(d => { map[d.id] = d.data(); });
+      setInventory(map);
+    });
+
+    return () => { unsubOrders(); unsubComments(); unsubInventory(); };
   }, []);
 
   const confirmOrder = async (id) => {
@@ -79,7 +104,10 @@ const AdminDashboard = ({ user, onLogout }) => {
     if (window.confirm('¿Eliminar este comentario?')) await deleteDoc(doc(db, 'comments', id));
   };
 
-  const handleLogout = async () => { await logout(); onLogout(); };
+  const toggleAvailability = async (productId, current) => {
+    if (!db) return;
+    await updateDoc(doc(db, 'inventory', productId), { available: !current });
+  };
 
   // ── Exportar a Excel ──
   const exportToExcel = useCallback(() => {
@@ -98,7 +126,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     XLSX.writeFile(wb, `EnteTazas_Pedidos_${new Date().toISOString().split('T')[0]}.xlsx`);
   }, [orders]);
 
-  // ── Stats ──
+  const handleLogout = async () => { await logout(); onLogout(); };
   const totalOrders = orders.length;
   const confirmedOrders = orders.filter(o => o.status === 'confirmado').length;
   const pendingOrders = orders.filter(o => o.status === 'pendiente').length;
@@ -222,9 +250,10 @@ const AdminDashboard = ({ user, onLogout }) => {
 
         {/* Tabs */}
         <div className="flex gap-4 mb-6 border-b border-gray-200">
-          {[
-            { id: 'orders', label: 'Gestión de Pedidos', icon: <Package size={15} /> },
+          {[  
+            { id: 'orders', label: 'Pedidos', icon: <Package size={15} /> },
             { id: 'comments', label: 'Comentarios', icon: <MessageSquare size={15} /> },
+            { id: 'inventory', label: 'Inventario', icon: <ToggleRight size={15} /> },
           ].map(tab => (
             <button
               key={tab.id}
@@ -238,7 +267,7 @@ const AdminDashboard = ({ user, onLogout }) => {
           ))}
         </div>
 
-        {activeTab === 'orders' ? (
+        {activeTab === 'orders' && (
           <>
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
               {/* Top Products Sidebar */}
@@ -307,7 +336,9 @@ const AdminDashboard = ({ user, onLogout }) => {
               </div>
             </div>
           </>
-        ) : (
+        )}
+
+        {activeTab === 'comments' && (
           /* Comments Table */
           <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
             <div className="p-6 border-b border-gray-100 flex justify-between items-center">
@@ -357,6 +388,48 @@ const AdminDashboard = ({ user, onLogout }) => {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'inventory' && (
+          /* Inventory Tab */
+          <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
+            <div className="p-6 border-b border-gray-100">
+              <h3 className="font-bold text-xl text-[#162444]">Control de Inventario</h3>
+              <p className="text-sm text-gray-400 mt-1">Activa o desactiva productos. El menú público se actualiza al instante.</p>
+            </div>
+            {['desayunos', 'meriendas', 'bebidas'].map(cat => (
+              <div key={cat} className="border-b border-gray-100 last:border-0">
+                <h4 className="px-6 py-3 bg-gray-50 text-xs font-bold uppercase tracking-widest text-gray-500">{cat}</h4>
+                <div className="divide-y divide-gray-50">
+                  {menuData[cat].map(item => {
+                    const inv = inventory[item.id];
+                    const available = inv ? inv.available !== false : true;
+                    return (
+                      <div key={item.id} className="flex items-center justify-between px-6 py-4 hover:bg-gray-50/50 transition-colors">
+                        <div>
+                          <p className={`font-medium text-sm ${available ? 'text-[#162444]' : 'text-gray-400 line-through'}`}>{item.nombre}</p>
+                          <p className="text-xs text-gray-400">{item.precio}</p>
+                        </div>
+                        <button
+                          onClick={() => toggleAvailability(item.id, available)}
+                          className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+                            available
+                              ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                              : 'bg-red-100 text-red-600 hover:bg-red-200'
+                          }`}
+                        >
+                          {available
+                            ? <><ToggleRight size={16} /> Disponible</>
+                            : <><ToggleLeft size={16} /> Agotado</>
+                          }
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>

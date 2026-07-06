@@ -3,6 +3,7 @@ import { menuData } from '../data/menuData';
 import { motion } from 'framer-motion';
 import { useInView } from 'framer-motion';
 import { useRef } from 'react';
+import { useInventory } from '../hooks/useInventory';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -17,6 +18,7 @@ const Menu = ({ onAddToCart }) => {
   const [activeTab, setActiveTab] = useState('desayunos');
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-80px' });
+  const { isAvailable } = useInventory();
 
   const tabs = [
     { id: 'desayunos', label: 'Desayunos' },
@@ -74,54 +76,87 @@ const Menu = ({ onAddToCart }) => {
         </div>
 
         <div key={activeTab} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {menuData[activeTab].map((item, idx) => (
-            <motion.div 
-              key={item.id}
-              custom={idx}
-              initial="hidden"
-              animate={isInView ? "visible" : "hidden"}
-              variants={fadeUp}
-              className="flex flex-col bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-white/10 transition-all group"
-            >
-              <div className="flex justify-between items-start h-full">
-                <div className="flex-1 pr-4 flex flex-col justify-between h-full">
-                  <div>
-                    <h3 className="text-lg font-bold text-corporativo dark:text-white group-hover:text-dorado transition-colors">
-                      {item.nombre}
-                    </h3>
-                    {item.desc && <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{item.desc}</p>}
-                  </div>
-                  <p className="text-dorado font-bold text-lg mt-2">{item.precio}</p>
-                </div>
-                
-                <div className="flex flex-col justify-center h-full min-h-[40px]">
-                  {item.precio.includes('/') ? (
-                    <div className="flex flex-col gap-1.5">
-                      <button
-                        onClick={() => onAddToCart(item, 'Grande', 2.30)}
-                        className="px-3 py-1.5 bg-corporativo hover:bg-dorado hover:text-corporativo text-white text-xs font-bold rounded-lg transition-all active:scale-95 shadow-sm whitespace-nowrap"
-                      >
-                        + Grande
-                      </button>
-                      <button
-                        onClick={() => onAddToCart(item, 'Pequeño', 1.30)}
-                        className="px-3 py-1.5 bg-corporativo hover:bg-dorado hover:text-corporativo text-white text-xs font-bold rounded-lg transition-all active:scale-95 shadow-sm whitespace-nowrap"
-                      >
-                        + Pequeño
-                      </button>
+          {menuData[activeTab].map((item, idx) => {
+            const available = isAvailable(item.id);
+            return (
+              <motion.div
+                key={item.id}
+                custom={idx}
+                initial="hidden"
+                animate={isInView ? "visible" : "hidden"}
+                variants={fadeUp}
+                className={`flex flex-col p-4 rounded-xl shadow-sm border transition-all group relative ${
+                  available
+                    ? 'bg-white/60 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 border-gray-100 dark:border-white/10'
+                    : 'bg-gray-50 dark:bg-white/[0.02] border-gray-200 dark:border-white/5 opacity-70'
+                }`}
+              >
+                {!available && (
+                  <span className="absolute top-3 right-3 bg-red-500 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
+                    Agotado
+                  </span>
+                )}
+                <div className="flex justify-between items-start h-full">
+                  <div className="flex-1 pr-4 flex flex-col justify-between h-full">
+                    <div>
+                      <h3 className={`text-lg font-bold transition-colors ${
+                        available
+                          ? 'text-corporativo dark:text-white group-hover:text-dorado'
+                          : 'text-gray-400 dark:text-gray-500'
+                      }`}>
+                        {item.nombre}
+                      </h3>
+                      {item.desc && <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{item.desc}</p>}
                     </div>
-                  ) : (
-                    <button
-                      onClick={() => onAddToCart(item)}
-                      className="px-4 py-2 bg-corporativo hover:bg-dorado hover:text-corporativo text-white text-sm font-bold rounded-lg transition-all active:scale-95 shadow-sm"
-                    >
-                      + Agregar
-                    </button>
-                  )}
+                    <p className={`font-bold text-lg mt-2 ${
+                      available ? 'text-dorado' : 'text-gray-400'
+                    }`}>{item.precio}</p>
+                  </div>
+
+                  <div className="flex flex-col justify-center h-full min-h-[40px]">
+                    {item.precio.includes('/') ? (
+                      <div className="flex flex-col gap-1.5">
+                        <button
+                          disabled={!available}
+                          onClick={() => available && onAddToCart(item, 'Grande', 2.30)}
+                          className={`px-3 py-1.5 text-white text-xs font-bold rounded-lg transition-all shadow-sm whitespace-nowrap ${
+                            available
+                              ? 'bg-corporativo hover:bg-dorado hover:text-corporativo active:scale-95'
+                              : 'bg-gray-300 cursor-not-allowed'
+                          }`}
+                        >
+                          + Grande
+                        </button>
+                        <button
+                          disabled={!available}
+                          onClick={() => available && onAddToCart(item, 'Pequeño', 1.30)}
+                          className={`px-3 py-1.5 text-white text-xs font-bold rounded-lg transition-all shadow-sm whitespace-nowrap ${
+                            available
+                              ? 'bg-corporativo hover:bg-dorado hover:text-corporativo active:scale-95'
+                              : 'bg-gray-300 cursor-not-allowed'
+                          }`}
+                        >
+                          + Pequeño
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        disabled={!available}
+                        onClick={() => available && onAddToCart(item)}
+                        className={`px-4 py-2 text-white text-sm font-bold rounded-lg transition-all shadow-sm ${
+                          available
+                            ? 'bg-corporativo hover:bg-dorado hover:text-corporativo active:scale-95'
+                            : 'bg-gray-300 cursor-not-allowed'
+                        }`}
+                      >
+                        {available ? '+ Agregar' : 'No disponible'}
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>
