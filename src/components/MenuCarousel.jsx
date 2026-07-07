@@ -144,9 +144,11 @@ const Card = ({ item, onAddToCart }) => {
           ))}
         </div>
 
-        <button
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={handleAdd}
-          className={`w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-300 transform active:scale-95 flex items-center justify-center gap-2 shadow-sm ${
+          className={`w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-colors duration-300 flex items-center justify-center gap-2 shadow-sm ${
             added
               ? 'bg-green-600 text-white'
               : 'bg-[#162444] hover:bg-[#C5A880] hover:text-[#162444] text-white'
@@ -154,7 +156,7 @@ const Card = ({ item, onAddToCart }) => {
         >
           <ShoppingCart size={14} />
           {added ? 'Agregado!' : 'Agregar a canasta'}
-        </button>
+        </motion.button>
       </div>
     </div>
   );

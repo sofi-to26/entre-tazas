@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Coffee, ShoppingCart, Sun, Moon, Menu as MenuIcon, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = ({ cartCount, onOpenCart, darkMode, toggleDarkMode }) => {
   const [scrolled, setScrolled] = useState(false);
@@ -78,21 +79,32 @@ const Navbar = ({ cartCount, onOpenCart, darkMode, toggleDarkMode }) => {
           </div>
         </div>
 
-        {/* Mobile Menu Dropdown */}
-        {mobileOpen && (
-          <div className="md:hidden bg-corporativo/95 backdrop-blur-md px-6 py-4 flex flex-col gap-4 border-t border-white/10">
-            {navLinks.map(link => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className="text-white hover:text-dorado transition-colors font-medium tracking-wide text-sm py-1"
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>
-        )}
+        {/* Mobile Menu Dropdown (Full Screen Glassmorphism) */}
+        <AnimatePresence>
+          {mobileOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="md:hidden fixed inset-0 z-40 top-[70px] glass-nav flex flex-col items-center justify-center gap-8 border-t border-white/10"
+            >
+              {navLinks.map((link, i) => (
+                <motion.a
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1, duration: 0.4 }}
+                  className="text-white hover:text-dorado transition-colors font-bold tracking-widest text-2xl uppercase"
+                >
+                  {link.label}
+                </motion.a>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
     </>
   );

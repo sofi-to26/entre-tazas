@@ -10,12 +10,14 @@ import Cart from './components/Cart';
 import MenuCarousel from './components/MenuCarousel';
 import AdminDashboard from './components/AdminDashboard';
 import Auth from './components/Auth';
+import Preloader from './components/Preloader';
 
 function App() {
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminUser, setAdminUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('entre-tazas-theme') === 'dark';
   });
@@ -107,8 +109,12 @@ function App() {
   // Public site
   return (
     <div className="font-sans text-gray-800 antialiased bg-white dark:bg-[#0a1225] dark:text-gray-100 transition-colors duration-300">
-      <Navbar
-        cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
+      {loading && <Preloader onComplete={() => setLoading(false)} />}
+      
+      {!loading && (
+        <>
+          <Navbar
+            cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
         onOpenCart={() => setIsCartOpen(true)}
         darkMode={darkMode}
         toggleDarkMode={() => setDarkMode(d => !d)}
@@ -130,6 +136,8 @@ function App() {
         removeFromCart={removeFromCart}
         clearCart={clearCart}
       />
+        </>
+      )}
     </div>
   );
 }

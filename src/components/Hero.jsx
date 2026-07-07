@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 
 const images = [
   'https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=2047&auto=format&fit=crop',
@@ -16,16 +16,20 @@ const Hero = () => {
     return () => clearInterval(timer);
   }, []);
 
+  const { scrollY } = useScroll();
+  const y = useTransform(scrollY, [0, 500], [0, 150]);
+
   return (
     <div className="relative h-screen w-full overflow-hidden bg-corporativo">
       {images.map((img, index) => (
-        <div
+        <motion.div
           key={index}
+          style={{ y }}
           className={`absolute inset-0 transition-opacity duration-1000 ${index === current ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
         >
           <img src={img} alt="Hero" className="w-full h-full object-cover animate-ken-burns" />
           <div className="absolute inset-0 bg-black/50" />
-        </div>
+        </motion.div>
       ))}
       <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4">
         <motion.h1
