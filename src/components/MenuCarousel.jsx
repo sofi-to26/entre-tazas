@@ -111,7 +111,7 @@ const Card = ({ item, onAddToCart }) => {
 
         <div className="p-4 pt-2">
           <div className="flex justify-between items-start gap-2 mb-1">
-            <h3 className="text-base font-bold text-[#162444] leading-tight">{item.titulo}</h3>
+            <h3 className="text-base font-bold text-[#162444] dark:text-white leading-tight">{item.titulo}</h3>
             <span className="text-[#C5A880] font-black text-sm whitespace-nowrap">{item.precio}</span>
           </div>
           <p className="text-xs text-gray-500 mb-3">{item.desc}</p>
@@ -124,7 +124,7 @@ const Card = ({ item, onAddToCart }) => {
               <select
                 value={selectedOptIdx}
                 onChange={(e) => setSelectedOptIdx(Number(e.target.value))}
-                className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg p-2 text-[#162444] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+                className="w-full text-xs bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-2 text-[#162444] dark:text-white focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
               >
                 {item.options.map((opt, idx) => (
                   <option key={idx} value={idx}>
@@ -137,7 +137,7 @@ const Card = ({ item, onAddToCart }) => {
         </div>
       </div>
 
-      <div className="p-4 pt-0 border-t border-gray-50 mt-auto">
+      <div className="p-4 pt-0 border-t border-gray-50 dark:border-white/10 mt-auto">
         <div className="flex items-center gap-0.5 my-3">
           {[...Array(5)].map((_, i) => (
             <Star key={i} size={14} className="fill-current text-[#C5A880]" />
