@@ -78,16 +78,16 @@ const Cart = ({ cart, isOpen, onClose, updateQuantity, removeFromCart, clearCart
 
       <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
         <div className="w-screen max-w-md transform transition-all ease-in-out duration-300">
-          <div className="h-full flex flex-col bg-white shadow-2xl overflow-y-scroll">
+          <div className="h-full flex flex-col bg-white dark:bg-[#0a1225] shadow-2xl overflow-y-scroll">
             <div className="flex-1 py-6 overflow-y-auto px-4 sm:px-6">
-              <div className="flex items-start justify-between border-b border-gray-100 pb-5">
-                <h2 className="text-xl font-bold text-corporativo flex items-center gap-2">
+              <div className="flex items-start justify-between border-b border-gray-100 dark:border-white/10 pb-5">
+                <h2 className="text-xl font-bold text-corporativo dark:text-dorado flex items-center gap-2">
                   <ShoppingBag className="text-dorado" /> Mi Carrito
                 </h2>
                 <div className="ml-3 h-7 flex items-center">
                   <button
                     type="button"
-                    className="-m-2 p-2 text-gray-400 hover:text-corporativo transition-colors"
+                    className="-m-2 p-2 text-gray-400 hover:text-corporativo dark:hover:text-white transition-colors"
                     onClick={onClose}
                   >
                     <X size={24} />
@@ -104,31 +104,31 @@ const Cart = ({ cart, isOpen, onClose, updateQuantity, removeFromCart, clearCart
                   </div>
                 ) : (
                   <div className="flow-root">
-                    <ul className="-my-6 divide-y divide-gray-100">
+                    <ul className="-my-6 divide-y divide-gray-100 dark:divide-white/10">
                       {cart.map((item) => (
                         <li key={item.cartItemId} className="py-6 flex">
                           <div className="flex-1 flex flex-col">
                             <div>
-                              <div className="flex justify-between text-base font-semibold text-corporativo">
+                              <div className="flex justify-between text-base font-semibold text-corporativo dark:text-white">
                                 <h3>{item.nombre}</h3>
                                 <p className="ml-4">${(item.precio * item.quantity).toFixed(2)}</p>
                               </div>
                               <p className="mt-1 text-sm text-gray-400">${item.precio.toFixed(2)} c/u</p>
                             </div>
                             <div className="flex-1 flex items-end justify-between text-sm">
-                              <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+                              <div className="flex items-center border border-gray-200 dark:border-white/10 rounded-lg overflow-hidden">
                                 <button
                                   type="button"
                                   onClick={() => updateQuantity(item.cartItemId, -1)}
-                                  className="p-1.5 hover:bg-gray-50 text-gray-500 transition-colors"
+                                  className="p-1.5 hover:bg-gray-50 dark:hover:bg-white/5 text-gray-500 transition-colors"
                                 >
                                   <Minus size={14} />
                                 </button>
-                                <span className="px-3 font-semibold text-corporativo">{item.quantity}</span>
+                                <span className="px-3 font-semibold text-corporativo dark:text-white">{item.quantity}</span>
                                 <button
                                   type="button"
                                   onClick={() => updateQuantity(item.cartItemId, 1)}
-                                  className="p-1.5 hover:bg-gray-50 text-gray-500 transition-colors"
+                                  className="p-1.5 hover:bg-gray-50 dark:hover:bg-white/5 text-gray-500 transition-colors"
                                 >
                                   <Plus size={14} />
                                 </button>
@@ -154,33 +154,33 @@ const Cart = ({ cart, isOpen, onClose, updateQuantity, removeFromCart, clearCart
             </div>
 
             {cart.length > 0 && (
-              <div className="border-t border-gray-200 py-6 px-4 sm:px-6 bg-gray-50">
-                <div className="flex justify-between text-base font-bold text-corporativo mb-6">
+              <div className="border-t border-gray-200 dark:border-white/10 py-6 px-4 sm:px-6 bg-gray-50 dark:bg-[#0d1b35]">
+                <div className="flex justify-between text-base font-bold text-corporativo dark:text-white mb-6">
                   <p>Total</p>
                   <p className="text-dorado text-xl">${total.toFixed(2)}</p>
                 </div>
 
                 <form onSubmit={handleCheckout} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-corporativo mb-1">Nombre y Apellido *</label>
+                    <label className="block text-sm font-semibold text-corporativo dark:text-gray-300 mb-1">Nombre y Apellido *</label>
                     <input
                       type="text"
                       required
                       value={nombre}
                       onChange={(e) => setNombre(e.target.value)}
                       placeholder="Ej. Juan Pérez"
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-dorado/50 focus:border-dorado transition-colors"
+                      className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0a1225] text-corporativo dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-dorado/50 focus:border-dorado transition-colors"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-corporativo mb-1">Dirección de Envío *</label>
+                    <label className="block text-sm font-semibold text-corporativo dark:text-gray-300 mb-1">Dirección de Envío *</label>
                     <textarea
                       required
                       rows="2"
                       value={direccion}
                       onChange={(e) => setDireccion(e.target.value)}
                       placeholder="Ej. Av. Principal, Res. El Café, Apto 4B"
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-dorado/50 focus:border-dorado transition-colors resize-none"
+                      className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0a1225] text-corporativo dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-dorado/50 focus:border-dorado transition-colors resize-none"
                     />
                   </div>
 
