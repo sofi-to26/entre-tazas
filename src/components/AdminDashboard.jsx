@@ -37,6 +37,7 @@ const AdminDashboard = ({ user, onLogout }) => {
   const [orders, setOrders] = useState([]);
   const [comments, setComments] = useState([]);
   const [inventory, setInventory] = useState({});
+  const [tempClosed, setTempClosed] = useState(false);
   const [filter, setFilter] = useState('all');
   const [activeTab, setActiveTab] = useState('orders');
   const prevOrderCount = useRef(null);
@@ -86,7 +87,13 @@ const AdminDashboard = ({ user, onLogout }) => {
       setInventory(map);
     });
 
-    return () => { unsubOrders(); unsubComments(); unsubInventory(); };
+    const unsubStatus = onSnapshot(doc(db, 'config', 'storeStatus'), (snap) => {
+      if (snap.exists()) {
+        setTempClosed(snap.data().tempClosed === true);
+      }
+    });
+
+    return () => { unsubOrders(); unsubComments(); unsubInventory(); unsubStatus(); };
   }, []);
 
   const confirmOrder = async (id) => {
@@ -107,6 +114,12 @@ const AdminDashboard = ({ user, onLogout }) => {
   const toggleAvailability = async (productId, current) => {
     if (!db) return;
     await updateDoc(doc(db, 'inventory', productId), { available: !current });
+  };
+
+  const toggleTempClosed = async () => {
+    if (!db) return;
+    const ref = doc(db, 'config', 'storeStatus');
+    await setDoc(ref, { tempClosed: !tempClosed }, { merge: true });
   };
 
   // ── Exportar a Excel ──
@@ -181,6 +194,19 @@ const AdminDashboard = ({ user, onLogout }) => {
           )}
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={toggleTempClosed}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-colors ${
+              tempClosed
+                ? 'bg-red-500 hover:bg-red-600 text-white'
+                : 'bg-green-600/80 hover:bg-green-600 text-white'
+            }`}
+            title="Activar/Desactivar pausa de recepción de pedidos"
+          >
+            {tempClosed ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
+            {tempClosed ? 'Pedidos Pausados' : 'Tomando Pedidos'}
+          </button>
+
           <button
             onClick={exportToExcel}
             className="flex items-center gap-2 bg-[#C5A880] hover:bg-[#d4af37] text-[#162444] px-4 py-2 rounded-lg text-sm font-bold transition-colors"

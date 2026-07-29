@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Menu from './components/Menu';
@@ -11,6 +11,9 @@ import MenuCarousel from './components/MenuCarousel';
 import AdminDashboard from './components/AdminDashboard';
 import Auth from './components/Auth';
 import Preloader from './components/Preloader';
+import HowToOrder from './components/HowToOrder';
+import Toast from './components/Toast';
+import { useStoreStatus } from './hooks/useStoreStatus';
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -21,6 +24,11 @@ function App() {
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('entre-tazas-theme') === 'dark';
   });
+  const [activeSection, setActiveSection] = useState('');
+  const [toasts, setToasts] = useState([]);
+  const toastCounter = useRef(0);
+
+  const { openNow, tempClosed } = useStoreStatus();
 
   useEffect(() => {
     const root = document.documentElement;
@@ -41,11 +49,41 @@ function App() {
     return () => window.removeEventListener('hashchange', checkHash);
   }, []);
 
-  const addToCart = (item, optionName = null, priceOverride = null) => {
+  // IntersectionObserver for active nav section
+  useEffect(() => {
+    const sectionIds = ['menu', 'experiencia', 'comentarios', 'ubicacion'];
+    const observers = [];
+
+    sectionIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const obs = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) setActiveSection(id);
+        },
+        { threshold: 0.3, rootMargin: '-80px 0px 0px 0px' }
+      );
+      obs.observe(el);
+      observers.push(obs);
+    });
+
+    return () => observers.forEach((o) => o.disconnect());
+  }, [loading]);
+
+  // Show toast notification
+  const showToast = useCallback((nombre) => {
+    const id = ++toastCounter.current;
+    setToasts((prev) => [...prev, { id, nombre }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 2500);
+  }, []);
+
+  const addToCart = useCallback((item, optionName = null, priceOverride = null) => {
     setCart(prevCart => {
       const cartItemId = optionName ? `${item.id}-${optionName}` : item.id;
       const displayName = optionName ? `${item.nombre} (${optionName})` : item.nombre;
-      
+
       let finalPrice = 0;
       if (priceOverride) {
         finalPrice = priceOverride;
@@ -69,8 +107,11 @@ function App() {
         }];
       }
     });
-    setIsCartOpen(true);
-  };
+
+    // Show toast instead of opening cart automatically
+    const displayName = optionName ? `${item.nombre} (${optionName})` : item.nombre;
+    showToast(displayName);
+  }, [showToast]);
 
   const removeFromCart = (cartItemId) => {
     setCart(prevCart => prevCart.filter(item => item.cartItemId !== cartItemId));
@@ -110,32 +151,43 @@ function App() {
   return (
     <div className="font-sans text-gray-800 antialiased bg-white dark:bg-[#0a1225] dark:text-gray-100 transition-colors duration-300">
       {loading && <Preloader onComplete={() => setLoading(false)} />}
-      
+
       {!loading && (
         <>
           <Navbar
             cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
-        onOpenCart={() => setIsCartOpen(true)}
-        darkMode={darkMode}
-        toggleDarkMode={() => setDarkMode(d => !d)}
-      />
-      <main>
-        <Hero />
-        <MenuCarousel onAddToCart={addToCart} />
-        <Menu onAddToCart={addToCart} />
-        <Gallery />
-        <Comments />
-      </main>
-      <Footer />
-      <FAB />
-      <Cart
-        cart={cart}
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        updateQuantity={updateQuantity}
-        removeFromCart={removeFromCart}
-        clearCart={clearCart}
-      />
+            onOpenCart={() => setIsCartOpen(true)}
+            darkMode={darkMode}
+            toggleDarkMode={() => setDarkMode(d => !d)}
+            activeSection={activeSection}
+          />
+
+          {/* Closed banner */}
+          {tempClosed && (
+            <div className="fixed top-0 left-0 w-full z-[60] bg-red-600 text-white text-center py-2 text-sm font-semibold">
+              🚫 En este momento no estamos tomando pedidos. ¡Volvemos pronto!
+            </div>
+          )}
+
+          <main>
+            <Hero openNow={openNow} />
+            <MenuCarousel onAddToCart={addToCart} />
+            <Menu onAddToCart={addToCart} />
+            <HowToOrder />
+            <Gallery />
+            <Comments />
+          </main>
+          <Footer />
+          <FAB />
+          <Cart
+            cart={cart}
+            isOpen={isCartOpen}
+            onClose={() => setIsCartOpen(false)}
+            updateQuantity={updateQuantity}
+            removeFromCart={removeFromCart}
+            clearCart={clearCart}
+          />
+          <Toast toasts={toasts} />
         </>
       )}
     </div>

@@ -6,8 +6,9 @@ export default {
     extend: {
       colors: {
         corporativo: '#162444',
-        dorado: '#D4AF37',
-        arena: '#F5F5DC'
+        dorado: '#C5A880',
+        arena: '#F5F5DC',
+        'dorado-dark': '#8B6914',
       },
       animation: {
         'ken-burns': 'kenBurns 10s ease-out infinite alternate',

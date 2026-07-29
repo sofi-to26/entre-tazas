@@ -27,9 +27,3 @@ export const seedInventory = async () => {
     }
   }
 };
-
-/**
- * Subscribe to real-time inventory updates.
- * Returns a map { [productId]: boolean }
- */
-export { db };

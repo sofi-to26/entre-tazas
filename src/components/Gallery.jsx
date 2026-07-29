@@ -129,15 +129,15 @@ const Gallery = () => {
   };
 
   return (
-    <section id="experiencia" className="py-24 bg-gradient-to-b from-white to-gray-50 overflow-hidden">
+    <section id="experiencia" className="py-24 bg-gradient-to-b from-white to-gray-50 dark:from-[#0a1225] dark:to-[#0d1b35] overflow-hidden">
       <div className="container mx-auto px-6 flex flex-col items-center">
         {/* Title Section */}
         <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold text-corporativo tracking-wide">
+          <h2 className="text-4xl md:text-5xl font-bold text-corporativo dark:text-dorado tracking-wide">
             La Experiencia
           </h2>
           <div className="h-1 w-20 bg-dorado mx-auto mt-4 rounded-full" />
-          <p className="text-gray-500 mt-4 max-w-md font-light">
+          <p className="text-gray-500 dark:text-gray-400 mt-4 max-w-md font-light">
             Sumérgete en la atmósfera de Entre Tazas a través de nuestra galería interactiva en 3D.
           </p>
         </div>
