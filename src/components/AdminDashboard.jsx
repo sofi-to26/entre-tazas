@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { collection, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, setDoc, getDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, setDoc, getDoc, getDocs, Timestamp, where } from 'firebase/firestore';
 import { db } from '../db/firebaseConfig';
 import { logout } from './Auth';
 import {
@@ -32,6 +32,27 @@ const playDing = () => {
 
 const COLORS = ['#C5A880', '#162444', '#8B6914', '#1e3a6e', '#d4af37'];
 
+// ── Auto-limpieza: borra pedidos pendientes de más de 24h ───────
+const purgeExpiredOrders = async () => {
+  if (!db) return;
+  try {
+    const cutoff = Timestamp.fromMillis(Date.now() - 24 * 60 * 60 * 1000);
+    const q = query(
+      collection(db, 'orders'),
+      where('status', '==', 'pendiente'),
+      where('timestamp', '<', cutoff)
+    );
+    const snap = await getDocs(q);
+    const deletions = snap.docs.map(d => deleteDoc(doc(db, 'orders', d.id)));
+    await Promise.all(deletions);
+    if (deletions.length > 0) {
+      console.log(`[Entre Tazas] ${deletions.length} pedido(s) expirado(s) eliminado(s) automáticamente.`);
+    }
+  } catch (e) {
+    console.error('Error en limpieza automática:', e);
+  }
+};
+
 // ── Componente Principal ────────────────────────────────────────
 const AdminDashboard = ({ user, onLogout }) => {
   const [orders, setOrders] = useState([]);
@@ -45,6 +66,9 @@ const AdminDashboard = ({ user, onLogout }) => {
 
   useEffect(() => {
     if (!db) return;
+
+    // Limpiar pedidos expirados al abrir el panel
+    purgeExpiredOrders();
 
     const qOrders = query(collection(db, 'orders'), orderBy('timestamp', 'desc'));
     const unsubOrders = onSnapshot(qOrders, (snap) => {
@@ -478,17 +502,29 @@ const OrderCard = ({ order, onConfirm, onDelete }) => {
     ? order.timestamp.toDate().toLocaleString('es-VE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
     : '—';
 
+  // Calcular tiempo restante para expiración (24h desde creación)
+  const hoursLeft = order.timestamp?.toDate
+    ? Math.max(0, Math.ceil(24 - (Date.now() - order.timestamp.toDate().getTime()) / 3600000))
+    : null;
+
   return (
     <div className={`bg-white rounded-xl shadow-sm border p-5 transition-all ${isPending ? 'border-amber-200' : 'border-green-200'}`}>
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
               isPending ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
             }`}>
               {order.status}
             </span>
             <span className="text-xs text-gray-400">{date}</span>
+            {isPending && hoursLeft !== null && (
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                hoursLeft <= 2 ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-500'
+              }`}>
+                ⏱ Expira en {hoursLeft}h
+              </span>
+            )}
           </div>
           <h4 className="font-bold text-[#162444] truncate">{order.clientName}</h4>
           <p className="text-xs text-gray-500 truncate">{order.address}</p>
