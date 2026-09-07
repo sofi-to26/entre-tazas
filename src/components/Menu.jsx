@@ -58,10 +58,15 @@ const Menu = ({ onAddToCart }) => {
           <h2 className="text-4xl font-bold text-corporativo dark:text-dorado mb-2">Nuestro Menú</h2>
           <div className="w-24 h-1 bg-dorado mx-auto mb-4"></div>
           <button
-            onClick={() => window.print()}
-            className="text-xs font-semibold text-corporativo dark:text-dorado border border-corporativo/20 dark:border-dorado/30 px-3 py-1.5 rounded-full hover:bg-corporativo hover:text-white dark:hover:bg-dorado dark:hover:text-corporativo transition-colors"
+            onClick={handleDownloadPDF}
+            disabled={isGeneratingPDF}
+            className="inline-flex items-center gap-2 text-xs font-semibold text-corporativo dark:text-dorado border border-corporativo/20 dark:border-dorado/30 px-4 py-2 rounded-full hover:bg-corporativo hover:text-white dark:hover:bg-dorado dark:hover:text-corporativo transition-all shadow-sm hover:shadow cursor-pointer disabled:opacity-50"
           >
-            📄 Imprimir / Guardar Menú (PDF)
+            {isGeneratingPDF ? (
+              <>⏳ Generando Menú PDF...</>
+            ) : (
+              <>📄 Descargar Menú Formato Carta (PDF)</>
+            )}
           </button>
         </motion.div>
 
