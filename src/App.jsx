@@ -10,7 +10,6 @@ import Cart from './components/Cart';
 import MenuCarousel from './components/MenuCarousel';
 import AdminDashboard from './components/AdminDashboard';
 import Auth from './components/Auth';
-import Preloader from './components/Preloader';
 import HowToOrder from './components/HowToOrder';
 import Toast from './components/Toast';
 import { useStoreStatus } from './hooks/useStoreStatus';
@@ -20,7 +19,6 @@ function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminUser, setAdminUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('entre-tazas-theme') === 'dark';
   });
@@ -68,7 +66,7 @@ function App() {
     });
 
     return () => observers.forEach((o) => o.disconnect());
-  }, [loading]);
+  }, []);
 
   // Show toast notification
   const showToast = useCallback((nombre) => {
