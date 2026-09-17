@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useInView } from 'framer-motion';
 import { useRef } from 'react';
 import { useInventory } from '../hooks/useInventory';
+import { generateMenuPDF } from '../utils/generateMenuPDF';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -16,9 +17,21 @@ const fadeUp = {
 
 const Menu = ({ onAddToCart }) => {
   const [activeTab, setActiveTab] = useState('desayunos');
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-80px' });
   const { isAvailable } = useInventory();
+
+  const handleDownloadPDF = async () => {
+    try {
+      setIsGeneratingPDF(true);
+      await generateMenuPDF();
+    } catch (err) {
+      console.error('Error generando PDF:', err);
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
 
   const tabs = [
     { id: 'desayunos', label: 'Desayunos' },
