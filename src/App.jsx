@@ -150,8 +150,6 @@ function App() {
   // Public site
   return (
     <div className="font-sans text-gray-800 antialiased bg-white dark:bg-[#0a1225] dark:text-gray-100 transition-colors duration-300">
-      {loading && <Preloader onComplete={() => setLoading(false)} />}
-
       <Navbar
         cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
         onOpenCart={() => setIsCartOpen(true)}
