@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useInView } from 'framer-motion';
 import { useRef } from 'react';
 import { useInventory } from '../hooks/useInventory';
-import { generateMenuPDF } from '../utils/generateMenuPDF';
+
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -17,21 +17,9 @@ const fadeUp = {
 
 const Menu = ({ onAddToCart }) => {
   const [activeTab, setActiveTab] = useState('desayunos');
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-80px' });
   const { isAvailable } = useInventory();
-
-  const handleDownloadPDF = async () => {
-    try {
-      setIsGeneratingPDF(true);
-      await generateMenuPDF();
-    } catch (err) {
-      console.error('Error generando PDF:', err);
-    } finally {
-      setIsGeneratingPDF(false);
-    }
-  };
 
   const tabs = [
     { id: 'desayunos', label: 'Desayunos' },
@@ -70,17 +58,6 @@ const Menu = ({ onAddToCart }) => {
         >
           <h2 className="text-4xl font-bold text-corporativo dark:text-dorado mb-2">Nuestro Menú</h2>
           <div className="w-24 h-1 bg-dorado mx-auto mb-4"></div>
-          <button
-            onClick={handleDownloadPDF}
-            disabled={isGeneratingPDF}
-            className="inline-flex items-center gap-2 text-xs font-semibold text-corporativo dark:text-dorado border border-corporativo/20 dark:border-dorado/30 px-4 py-2 rounded-full hover:bg-corporativo hover:text-white dark:hover:bg-dorado dark:hover:text-corporativo transition-all shadow-sm hover:shadow cursor-pointer disabled:opacity-50"
-          >
-            {isGeneratingPDF ? (
-              <>⏳ Generando Menú PDF...</>
-            ) : (
-              <>📄 Descargar Menú Formato Carta (PDF)</>
-            )}
-          </button>
         </motion.div>
 
         <div className="flex justify-center gap-4 mb-10 border-b border-corporativo/20 dark:border-white/10 pb-4">
