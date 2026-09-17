@@ -152,15 +152,13 @@ function App() {
     <div className="font-sans text-gray-800 antialiased bg-white dark:bg-[#0a1225] dark:text-gray-100 transition-colors duration-300">
       {loading && <Preloader onComplete={() => setLoading(false)} />}
 
-      {!loading && (
-        <>
-          <Navbar
-            cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
-            onOpenCart={() => setIsCartOpen(true)}
-            darkMode={darkMode}
-            toggleDarkMode={() => setDarkMode(d => !d)}
-            activeSection={activeSection}
-          />
+      <Navbar
+        cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
+        onOpenCart={() => setIsCartOpen(true)}
+        darkMode={darkMode}
+        toggleDarkMode={() => setDarkMode(d => !d)}
+        activeSection={activeSection}
+      />
 
           {/* Closed banner */}
           {tempClosed && (
@@ -188,8 +186,6 @@ function App() {
             clearCart={clearCart}
           />
           <Toast toasts={toasts} />
-        </>
-      )}
     </div>
   );
 }
