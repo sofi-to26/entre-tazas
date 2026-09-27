@@ -44,7 +44,7 @@ const Auth = ({ onAuth }) => {
             <Lock className="text-[#C5A880]" size={28} />
           </div>
           <h2 className="text-2xl font-bold text-[#162444]">Panel Admin</h2>
-          <p className="text-gray-400 text-sm mt-1">Entre Tazas - Acceso restringido</p>
+          <p className="text-gray-400 text-sm mt-1">Aroma &amp; Grano - Acceso restringido</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
@@ -58,7 +58,7 @@ const Auth = ({ onAuth }) => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C5A880]/50 focus:border-[#C5A880] transition-colors"
-                placeholder="admin@entretazas.com"
+                placeholder="admin@aromaygrano.com"
               />
             </div>
           </div>

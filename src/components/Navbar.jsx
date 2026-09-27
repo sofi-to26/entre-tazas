@@ -37,7 +37,7 @@ const Navbar = ({ cartCount, onOpenCart, darkMode, toggleDarkMode, activeSection
           {/* Logo */}
           <a href="#" className="flex items-center gap-2 text-white hover:text-dorado transition-colors">
             <Coffee size={28} />
-            <span className="text-xl font-bold tracking-widest uppercase">Entre Tazas</span>
+            <span className="text-xl font-bold tracking-widest uppercase">Aroma &amp; Grano</span>
           </a>
 
           {/* Desktop Links */}

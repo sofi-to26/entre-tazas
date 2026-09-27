@@ -82,7 +82,7 @@ const Hero = ({ openNow }) => {
           transition={{ duration: 0.9, ease: 'easeOut', delay: 0.3 }}
           className="text-5xl md:text-7xl font-bold text-white mb-4 drop-shadow-lg"
         >
-          ENTRE TAZAS
+          AROMA &amp; GRANO
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 30 }}

@@ -43,7 +43,7 @@ const Cart = ({ cart, isOpen, onClose, updateQuantity, removeFromCart, clearCart
 
     // Format WhatsApp message
     const lineBreak = '\n';
-    let message = `*ENTRE TAZAS - NUEVO PEDIDO*${lineBreak}`;
+    let message = `*AROMA & GRANO - NUEVO PEDIDO*${lineBreak}`;
     message += `----------------------------------${lineBreak}`;
     message += `*Cliente:* ${nombre.trim()}${lineBreak}`;
     message += `*Dirección:* ${direccion.trim()}${lineBreak}`;

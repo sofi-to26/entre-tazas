@@ -38,7 +38,7 @@ const carouselItems = [
     img: '/imagenes_carrusel/desayuno_completo_2.png'
   },
   {
-    title: 'Gran Combo Entre Tazas',
+    title: 'Gran Combo Aroma & Grano',
     subtitle: 'Exquisitos pastelitos crujientes acompañados de malta y salsas artesanales.',
     img: '/imagenes_carrusel/desayuno_completo_pastelitos_jugo_malta_salsa.png'
   },
@@ -138,7 +138,7 @@ const Gallery = () => {
           </h2>
           <div className="h-1 w-20 bg-dorado mx-auto mt-4 rounded-full" />
           <p className="text-gray-500 dark:text-gray-400 mt-4 max-w-md font-light">
-            Sumérgete en la atmósfera de Entre Tazas a través de nuestra galería interactiva en 3D.
+            Sumérgete en la atmósfera de Aroma &amp; Grano a través de nuestra galería interactiva en 3D.
           </p>
         </div>
 

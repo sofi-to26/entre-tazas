@@ -46,7 +46,7 @@ const purgeExpiredOrders = async () => {
     const deletions = snap.docs.map(d => deleteDoc(doc(db, 'orders', d.id)));
     await Promise.all(deletions);
     if (deletions.length > 0) {
-      console.log(`[Entre Tazas] ${deletions.length} pedido(s) expirado(s) eliminado(s) automáticamente.`);
+      console.log(`[Aroma & Grano] ${deletions.length} pedido(s) expirado(s) eliminado(s) automáticamente.`);
     }
   } catch (e) {
     console.error('Error en limpieza automática:', e);
@@ -160,7 +160,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Pedidos Confirmados');
-    XLSX.writeFile(wb, `EnteTazas_Pedidos_${new Date().toISOString().split('T')[0]}.xlsx`);
+    XLSX.writeFile(wb, `AromaYGrano_Pedidos_${new Date().toISOString().split('T')[0]}.xlsx`);
   }, [orders]);
 
   const handleLogout = async () => { await logout(); onLogout(); };
@@ -208,7 +208,7 @@ const AdminDashboard = ({ user, onLogout }) => {
       <header className="bg-[#162444] text-white py-4 px-6 flex justify-between items-center sticky top-0 z-50 shadow-lg">
         <div className="flex items-center gap-3">
           <div>
-            <h1 className="text-xl font-bold tracking-wide">Entre Tazas Admin</h1>
+            <h1 className="text-xl font-bold tracking-wide">Aroma &amp; Grano Admin</h1>
             <p className="text-xs text-gray-400">{user?.email}</p>
           </div>
           {newOrderAlert && (

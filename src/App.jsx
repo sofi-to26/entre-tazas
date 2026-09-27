@@ -20,7 +20,7 @@ function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminUser, setAdminUser] = useState(null);
   const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem('entre-tazas-theme') === 'dark';
+    return (localStorage.getItem('aroma-grano-theme') || localStorage.getItem('entre-tazas-theme')) === 'dark';
   });
   const [activeSection, setActiveSection] = useState('');
   const [toasts, setToasts] = useState([]);
@@ -32,10 +32,10 @@ function App() {
     const root = document.documentElement;
     if (darkMode) {
       root.classList.add('dark');
-      localStorage.setItem('entre-tazas-theme', 'dark');
+      localStorage.setItem('aroma-grano-theme', 'dark');
     } else {
       root.classList.remove('dark');
-      localStorage.setItem('entre-tazas-theme', 'light');
+      localStorage.setItem('aroma-grano-theme', 'light');
     }
   }, [darkMode]);
 

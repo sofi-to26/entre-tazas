@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['logo.png', 'icons/*.png'],
       manifest: {
-        name: 'Entre Tazas',
-        short_name: 'Entre Tazas',
+        name: 'Aroma & Grano',
+        short_name: 'Aroma & Grano',
         description: 'Cada taza cuenta una historia. La tuya comienza aquí.',
         theme_color: '#162444',
         background_color: '#162444',

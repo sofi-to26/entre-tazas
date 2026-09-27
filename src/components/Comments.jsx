@@ -76,7 +76,7 @@ const Comments = () => {
           </h2>
           <div className="h-1 w-24 bg-dorado mx-auto mt-4 rounded-full" />
           <p className="text-gray-500 dark:text-gray-400 mt-4 max-w-md mx-auto font-light">
-            Comparte tu experiencia en Entre Tazas. Tus comentarios nos ayudan a mejorar cada día.
+            Comparte tu experiencia en Aroma &amp; Grano. Tus comentarios nos ayudan a mejorar cada día.
           </p>
         </motion.div>
 
